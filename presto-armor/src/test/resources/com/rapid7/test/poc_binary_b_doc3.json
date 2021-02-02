@@ -1,0 +1,9 @@
+{
+   "organization":"not_test",
+   "uuid":1,
+   "rowsBlob":"H4sIAAAAAAAAAIuuVspOrSzPL0qJT8tMzUlRslJKMlTSUcrMK4EJGNbqYFFkhKrIqDYWAAAvfJFLAAAA",
+   "rows":[
+       {"keyword_field":"b1","int_field":1},
+       {"keyword_field":"b2","int_field":2}
+   ]
+}

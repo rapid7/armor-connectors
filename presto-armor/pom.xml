@@ -1,0 +1,301 @@
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.rapid7.presto</groupId>
+        <artifactId>rapid7-presto-root</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+    <artifactId>presto-armor</artifactId>
+    <description>Presto - Armor</description>
+    <packaging>presto-plugin</packaging>
+
+    <properties>
+        <air.main.basedir>${project.parent.basedir}</air.main.basedir>
+
+        <!-- These must be updated to avoid to resolve ES and presto/fb dependencies -->
+        <dep.jackson.version>2.10.4</dep.jackson.version>
+        <dep.log4j.version>2.11.1</dep.log4j.version>
+        <dep.slf4j.version>1.7.26</dep.slf4j.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <artifactId>armor-read</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <groupId>com.rapid7</groupId>
+            <exclusions>
+                <exclusion>
+                    <groupId>tech.tablesaw</groupId>
+                    <artifactId>tablesaw-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.presto</groupId>
+            <artifactId>presto-record-decoder</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.inject</groupId>
+            <artifactId>guice</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>bootstrap</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>configuration</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>concurrent</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>log</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>security</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${dep.log4j.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${dep.log4j.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>log-manager</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- provided -->
+        <dependency>
+            <groupId>com.facebook.presto</groupId>
+            <artifactId>presto-spi</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.presto</groupId>
+            <artifactId>presto-common</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.airlift</groupId>
+            <artifactId>units</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.airlift</groupId>
+            <artifactId>slice</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- for testing -->
+        <dependency>
+            <groupId>com.facebook.presto</groupId>
+            <artifactId>presto-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.presto</groupId>
+            <artifactId>presto-main</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.presto</groupId>
+            <artifactId>presto-tests</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>http-server</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>node</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.facebook.airlift</groupId>
+            <artifactId>testing</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>io.airlift.tpch</groupId>
+            <artifactId>tpch</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.mycila</groupId>
+                    <artifactId>license-maven-plugin</artifactId>
+                    <version>2.3</version>
+                    <dependencies>
+                        <!-- This version must match the Airbase version. 
+                            It will be updated by -->
+                        <!-- the Maven Release plugin. The "project.version" 
+                            property cannot be -->
+                        <!-- used here as it will resolve to the version 
+                            of the child project. -->
+                        <dependency>
+                            <groupId>com.facebook.airlift</groupId>
+                            <artifactId>airbase-policy</artifactId>
+                            <version>98</version>
+                        </dependency>
+                    </dependencies>
+                    <configuration>
+                        <skip>true</skip>
+                        <skipExistingHeaders>true</skipExistingHeaders>
+                        <failIfMissing>${air.check.fail-license}</failIfMissing>
+                        <header>${air.license.header-file}</header>
+                        <mapping>
+                            <java>SLASHSTAR_STYLE</java>
+                            <g>SLASHSTAR_STYLE</g>
+                            <g4>SLASHSTAR_STYLE</g4>
+                        </mapping>
+                        <properties>
+                            <inceptionYear>${project.inceptionYear}</inceptionYear>
+                        </properties>
+                        <headerSections>
+                            <headerSection>
+                                <key>COPYRIGHT_SECTION</key>
+                                <defaultValue>${air.license.default-value}</defaultValue>
+                                <ensureMatch>${air.license.ensure-match}</ensureMatch>
+                                <multiLineMatch>false</multiLineMatch>
+                            </headerSection>
+                        </headerSections>
+                        <strictCheck>true</strictCheck>
+                        <aggregate>true</aggregate>
+                        <useDefaultExcludes>true</useDefaultExcludes>
+                        <encoding>${project.build.sourceEncoding}</encoding>
+                        <excludes>
+                            <exclude>.*/**</exclude>
+                            <exclude>**/*.md</exclude>
+                            <exclude>**/*.sh</exclude>
+                            <exclude>**/*.txt</exclude>
+                            <exclude>**/*.thrift</exclude>
+                            <exclude>**/*.sql</exclude>
+                            <exclude>**/*.releaseBackup</exclude>
+                            <exclude>**/*.st</exclude>
+                            <exclude>**/*.raw</exclude>
+                            <exclude>**/*.ser</exclude>
+                            <exclude>**/*.html</exclude>
+                            <exclude>**/*.rst</exclude>
+                            <exclude>**/*.xml</exclude>
+                            <exclude>**/*.csv</exclude>
+                            <exclude>**/*.tsv</exclude>
+                            <exclude>**/*.properties</exclude>
+                            <exclude>**/src/license/**</exclude>
+                            <exclude>**/src/*/resources/**</exclude>
+                        </excludes>
+                        <includes>
+                            <include>src/**</include>
+                        </includes>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>default</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+
+</project>

@@ -1,0 +1,8 @@
+{
+   "organization":"test",
+   "uuid":2,
+   "rows":[
+       {"keyword_field":"a3","int_field":3},
+       {"keyword_field":"a4","int_field":4}
+   ]
+}
