@@ -1,9 +1,0 @@
-{
-   "organization":"test",
-   "uuid":1,
-   "rowsBlob":"H4sIAAAAAAAAAIuuVspOrSzPL0qJT8tMzUlRslJKNFTSUcrMK4EJGNbqYFFkhKrIqDYWANCdlRRLAAAA",
-   "rows":[
-       {"keyword_field":"a1","int_field":1},
-       {"keyword_field":"a2","int_field":2}
-   ]
-}
