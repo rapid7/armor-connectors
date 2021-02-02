@@ -15,13 +15,13 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>rapid7-presto-root</name>
+    <name>presto-armor-connector</name>
     <description>Presto</description>
-    <url>https://github.com/rapid7/presto-connectors</url>
+    <url>https://github.com/rapid7/presto-armor-connector</url>
 
     <scm>
-        <connection>scm:git:git://github.com/rapid7/presto-connectors.git</connection>
-        <url>https://github.com/rapid7/presto-connectors</url>
+        <connection>scm:git:git://github.com/rapid7/presto-armor-connector.git</connection>
+        <url>https://github.com/rapid7/presto-armor-connector</url>
         <tag>1.0.0-SNAPSHOT</tag>
     </scm>
 
