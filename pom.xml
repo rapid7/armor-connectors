@@ -45,7 +45,7 @@
         <air.check.skip-checkstyle>true</air.check.skip-checkstyle>
         <air.check.skip-dependency>true</air.check.skip-dependency>
 
-        <air.java.version>1.8.0-151</air.java.version>
+        <air.java.version>1.8.0-45</air.java.version>
         <air.maven.version>3.3.9</air.maven.version>
 
         <dep.antlr.version>4.7.1</dep.antlr.version>
