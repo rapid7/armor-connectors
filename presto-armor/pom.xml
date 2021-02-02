@@ -17,7 +17,7 @@
 
         <!-- These must be updated to avoid to resolve ES and presto/fb dependencies -->
         <dep.jackson.version>2.10.4</dep.jackson.version>
-        <dep.log4j.version>2.11.1</dep.log4j.version>
+        <dep.log4j.version>2.14.0</dep.log4j.version>
         <dep.slf4j.version>1.7.26</dep.slf4j.version>
     </properties>
 
