@@ -53,11 +53,15 @@ public class ArmorPageSourceProvider
         requireNonNull(split, "split is null");
         requireNonNull(layout, "layout is null");
         ArmorTableLayoutHandle layoutHandle = (ArmorTableLayoutHandle) layout;
-        String org = layoutHandle.getTable().getSchema();
+        String tenant = layoutHandle.getTable().getSchema();
         ArmorSplit armorSplit = (ArmorSplit) split;
+        
+        if (columns.isEmpty()) {
+            return new ArmorCountQueryPageSource(armorClient, session, layoutHandle, armorSplit);
+        }
  
         try {
-	        Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(armorSplit.getShard(), org, layoutHandle.getTable().getTableName(), columns);        
+	        Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(armorSplit.getShard(), tenant, layoutHandle.getTable().getTableName(), columns);        
 	        return new ArmorPageSource(new ArmorBlockReader(readers), session, layoutHandle.getTable(), columns);
         } catch (Exception e) {
         	throw new RuntimeException(e);

@@ -13,6 +13,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.facebook.presto.spi.ColumnHandle;
+import com.rapid7.armor.meta.ShardMetadata;
 import com.rapid7.armor.read.fast.FastArmorBlockReader;
 import com.rapid7.armor.read.fast.FastArmorReader;
 import com.rapid7.armor.schema.ColumnId;
@@ -23,6 +24,7 @@ import com.rapid7.armor.store.S3ReadStore;
 
 public class ArmorClient {
     private ReadStore readStore;
+
     @Inject
     public ArmorClient(ArmorConfig config) {
         if (config.getStoreType().equals("file")) {
@@ -51,7 +53,7 @@ public class ArmorClient {
     public Collection<String> getTables(String org) throws IOException {
         return readStore.getTables(org);
     }
-    
+
     public List<String> getSchemas() {
         return readStore.getTenants();
     }
@@ -59,13 +61,20 @@ public class ArmorClient {
     public List<ShardId> getShardIds(String org, String tableName) throws IOException {
         return readStore.findShardIds(org, tableName);
     }
+    
+    public long count(int shardNum, String tenant, String table) {
+        ShardMetadata metadata = readStore.getShardMetadata(tenant, table, shardNum);
+        if (metadata == null)
+            return 0l;
+        return metadata.getColumnMetadata().get(0).getNumRows();
+    }
 
-    public Map<String, FastArmorBlockReader> getFastReaders(int shardNum, String org, String table, List<ColumnHandle> columns) throws IOException {
+    public Map<String, FastArmorBlockReader> getFastReaders(int shardNum, String tenant, String table, List<ColumnHandle> columns) throws IOException {
         FastArmorReader armorReader = new FastArmorReader(readStore);
         HashMap<String, FastArmorBlockReader> readers = new HashMap<>();
         for (ColumnHandle column : columns) {
             ArmorColumnHandle armorHandle = (ArmorColumnHandle) column;
-            readers.put(armorHandle.getName(), armorReader.getColumn(org, table, armorHandle.getName(), shardNum));
+            readers.put(armorHandle.getName(), armorReader.getColumn(tenant, table, armorHandle.getName(), shardNum));
         }
         return readers;
     }

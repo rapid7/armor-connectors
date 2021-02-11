@@ -105,8 +105,8 @@ public class ArmorMetadata
         }
     }
     
-    private ColumnMetadata toColumnMetaData(ColumnId columnName) {
-    	return new ColumnMetadata(columnName.getName(), toColumnType(columnName));
+    private ColumnMetadata toColumnMetaData(ColumnId columnId) {
+    	return new ColumnMetadata(columnId.getName(), toColumnType(columnId));
     }
 
     private Type toColumnType(ColumnId column) {
