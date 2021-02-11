@@ -91,7 +91,7 @@ plugin.bundles=\
   ../presto-i18n-functions/pom.xml,\
   ../presto-function-namespace-managers/pom.xml,\
   ../presto-druid/pom.xml, \
-  ../../mydirectory/ivm-presto-connectors/ivm-presto-armor/pom.xml
+  ../../mydirectory/presto-armor-connector/pom.xml
 
 presto.version=testversion
 node-scheduler.include-coordinator=true
