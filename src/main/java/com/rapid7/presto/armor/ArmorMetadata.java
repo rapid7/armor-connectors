@@ -47,7 +47,7 @@ import com.facebook.presto.spi.SchemaTablePrefix;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.rapid7.armor.schema.ColumnName;
+import com.rapid7.armor.schema.ColumnId;
 
 public class ArmorMetadata
         implements ConnectorMetadata
@@ -95,7 +95,7 @@ public class ArmorMetadata
         ArmorTableHandle handle = (ArmorTableHandle) table;
         try {
         	String org = handle.getSchema();
-	        List<ColumnMetadata> columns = armorClient.getColumNames(org, handle.getTableName()).stream()
+	        List<ColumnMetadata> columns = armorClient.getColumnIds(org, handle.getTableName()).stream()
 	            .map(column -> toColumnMetaData(column))
 	            .collect(toImmutableList());
 	        return new ConnectorTableMetadata(handle.toSchemaTableName(), columns);
@@ -105,11 +105,11 @@ public class ArmorMetadata
         }
     }
     
-    private ColumnMetadata toColumnMetaData(ColumnName columnName) {
+    private ColumnMetadata toColumnMetaData(ColumnId columnName) {
     	return new ColumnMetadata(columnName.getName(), toColumnType(columnName));
     }
 
-    private Type toColumnType(ColumnName column) {
+    private Type toColumnType(ColumnId column) {
     	switch (column.dataType()) {
     		case LONG:
     			return BigintType.BIGINT;
@@ -129,7 +129,7 @@ public class ArmorMetadata
     	return null;
     }
     
-    private ColumnHandle toColumnHandle(ColumnName column)
+    private ColumnHandle toColumnHandle(ColumnId column)
     {
         return new ArmorColumnHandle(column.getName(), toColumnType(column));
     }
@@ -152,7 +152,7 @@ public class ArmorMetadata
         String tableName = armorTable.getTableName();
         String org = armorTable.getSchema();
         try {
-        	return armorClient.getColumNames(org, tableName).stream().collect(toImmutableMap(ColumnName::getName, column -> toColumnHandle(column)));
+        	return armorClient.getColumnIds(org, tableName).stream().collect(toImmutableMap(ColumnId::getName, column -> toColumnHandle(column)));
         } catch (Exception ioe) {
         	ioe.printStackTrace();
         }

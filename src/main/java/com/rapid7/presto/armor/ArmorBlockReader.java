@@ -13,21 +13,21 @@ import com.facebook.presto.common.block.IntArrayBlock;
 import com.facebook.presto.common.block.LongArrayBlock;
 import com.facebook.presto.common.block.VariableWidthBlock;
 import com.facebook.presto.common.type.Type;
-import com.rapid7.armor.read.FastArmorBlock;
-import com.rapid7.armor.read.FastArmorColumnReader;
+import com.rapid7.armor.read.fast.FastArmorBlock;
+import com.rapid7.armor.read.fast.FastArmorBlockReader;
 
 public class ArmorBlockReader {
 
-    private Map<String, FastArmorColumnReader> columnReaders;
+    private Map<String, FastArmorBlockReader> columnReaders;
     private final int DEFAULT_BATCH_SIZE = 500000;
     private int batchSize = DEFAULT_BATCH_SIZE;
-    public ArmorBlockReader(Map<String, FastArmorColumnReader> columnReaders) {
+    public ArmorBlockReader(Map<String, FastArmorBlockReader> columnReaders) {
         this.columnReaders = columnReaders;
         this.batchSize = DEFAULT_BATCH_SIZE;
     }
     
     public int batchSize() {
-        for (FastArmorColumnReader far : columnReaders.values()) {
+        for (FastArmorBlockReader far : columnReaders.values()) {
             if (far.hasNext()) {
                 return far.nextBatchSize(batchSize);
             }
@@ -37,7 +37,7 @@ public class ArmorBlockReader {
 
     // Reads in a block of a given array.
     public Block read(Type type, String name) {
-        FastArmorColumnReader reader = columnReaders.get(name);
+        FastArmorBlockReader reader = columnReaders.get(name);
         if (type.equals(VARCHAR)) {
             FastArmorBlock ab = reader.getStringBlock(reader.nextBatchSize(batchSize));
             return new VariableWidthBlock(ab.getValuesIsNull().length, ab.getSlice(), ab.getOffsets(), Optional.of(ab.getValuesIsNull()));

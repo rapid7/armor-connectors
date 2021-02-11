@@ -13,9 +13,9 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.facebook.presto.spi.ColumnHandle;
-import com.rapid7.armor.read.FastArmorColumnReader;
-import com.rapid7.armor.read.FastArmorReader;
-import com.rapid7.armor.schema.ColumnName;
+import com.rapid7.armor.read.fast.FastArmorBlockReader;
+import com.rapid7.armor.read.fast.FastArmorReader;
+import com.rapid7.armor.schema.ColumnId;
 import com.rapid7.armor.shard.ShardId;
 import com.rapid7.armor.store.FileReadStore;
 import com.rapid7.armor.store.ReadStore;
@@ -44,8 +44,8 @@ public class ArmorClient {
             throw new RuntimeException("The store type " + config.getStoreType() + " is not supported yet");
     }
 
-    public List<ColumnName> getColumNames(String org, String tableName) throws IOException {
-        return readStore.getColumNames(org, tableName);
+    public List<ColumnId> getColumnIds(String org, String tableName) throws IOException {
+        return readStore.getColumnIds(org, tableName);
     }
 
     public Collection<String> getTables(String org) throws IOException {
@@ -53,16 +53,16 @@ public class ArmorClient {
     }
     
     public List<String> getSchemas() {
-        return readStore.getOrgs();
+        return readStore.getTenants();
     }
 
     public List<ShardId> getShardIds(String org, String tableName) throws IOException {
         return readStore.findShardIds(org, tableName);
     }
 
-    public Map<String, FastArmorColumnReader> getFastReaders(int shardNum, String org, String table, List<ColumnHandle> columns) throws IOException {
+    public Map<String, FastArmorBlockReader> getFastReaders(int shardNum, String org, String table, List<ColumnHandle> columns) throws IOException {
         FastArmorReader armorReader = new FastArmorReader(readStore);
-        HashMap<String, FastArmorColumnReader> readers = new HashMap<>();
+        HashMap<String, FastArmorBlockReader> readers = new HashMap<>();
         for (ColumnHandle column : columns) {
             ArmorColumnHandle armorHandle = (ArmorColumnHandle) column;
             readers.put(armorHandle.getName(), armorReader.getColumn(org, table, armorHandle.getName(), shardNum));

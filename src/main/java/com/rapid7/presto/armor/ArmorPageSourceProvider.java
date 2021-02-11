@@ -21,7 +21,7 @@ import com.facebook.presto.spi.ConnectorTableLayoutHandle;
 import com.facebook.presto.spi.SplitContext;
 import com.facebook.presto.spi.connector.ConnectorPageSourceProvider;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
-import com.rapid7.armor.read.FastArmorColumnReader;
+import com.rapid7.armor.read.fast.FastArmorBlockReader;
 
 import javax.inject.Inject;
 
@@ -57,7 +57,7 @@ public class ArmorPageSourceProvider
         ArmorSplit armorSplit = (ArmorSplit) split;
  
         try {
-	        Map<String, FastArmorColumnReader> readers = armorClient.getFastReaders(armorSplit.getShard(), org, layoutHandle.getTable().getTableName(), columns);        
+	        Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(armorSplit.getShard(), org, layoutHandle.getTable().getTableName(), columns);        
 	        return new ArmorPageSource(new ArmorBlockReader(readers), session, layoutHandle.getTable(), columns);
         } catch (Exception e) {
         	throw new RuntimeException(e);
