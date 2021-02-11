@@ -104,7 +104,14 @@ node-scheduler.include-coordinator=true
 -ea -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:+UseGCOverheadLimit -XX:+ExplicitGCInvokesConcurrent -Xmx16G -Dconfig=etc/config.properties -Dlog.levels-file=etc/log.properties -Djdk.attach.allowAttachSelf=true
 ```
 
-7. You are all set and ready to go.
+7. You are all set and ready to go, launch it from your IDE.
 
 Note: If you are testing against a S3 store, then ensure your IDE's session has AWS access to whichever S3 bucket.
+
+8. To interface with the server, use the CLI.
+
+a) cd to presto/presto-cli/target
+b) ./presto-cli-$VERSION-SNAPSHOT-executable.jar
+
+You should see the armor catalog setup. Have fun!
 
