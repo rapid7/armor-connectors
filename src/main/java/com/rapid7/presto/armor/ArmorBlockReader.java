@@ -13,8 +13,8 @@ import com.facebook.presto.common.block.IntArrayBlock;
 import com.facebook.presto.common.block.LongArrayBlock;
 import com.facebook.presto.common.block.VariableWidthBlock;
 import com.facebook.presto.common.type.Type;
-import com.rapid7.armor.read.fast.FastArmorBlock;
 import com.rapid7.armor.read.fast.FastArmorBlockReader;
+import com.rapid7.armor.read.fast.FastArmorBlock;
 
 public class ArmorBlockReader {
 
