@@ -6,11 +6,21 @@ You can develop and debug your presto connector locally. Follow these instructio
 
 1. Clone the prestodb repository.
 
+https://github.com/prestodb/presto
 
-2. Load modules from prestodb into your IDE.
+2. Build the prestodb project
 
+```
+./mvnw clean install -DskipTests
+```
+
+3. Load modules from prestodb into your IDE.
+
+These are required in your IDE to get a good idea of how it works.
  * presto-main
  * presto-common
+ 
+This repository which is NOT part of prestoDB.
  * presto-armor-connector
  
 3. Find and identify PrestoServer, this will be your main class to run.
