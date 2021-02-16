@@ -14,11 +14,13 @@
 package com.rapid7.presto.armor;
 
 
+import com.rapid7.armor.interval.Interval;
 import static java.util.Objects.requireNonNull;
 
 import com.facebook.presto.common.Page;
 import com.facebook.presto.spi.ConnectorPageSource;
 import com.facebook.presto.spi.ConnectorSession;
+import java.time.Instant;
 
 public class ArmorCountQueryPageSource
         implements ConnectorPageSource
@@ -36,7 +38,7 @@ public class ArmorCountQueryPageSource
         long start = System.nanoTime();
         String tenant = table.getTable().getSchema();
         String tableName = table.getTable().getTableName();
-        count = client.count(split.getShard(), tenant, tableName);
+        count = client.count(split.getShard(), tenant, tableName, Interval.SINGLE, Instant.now());
         readTimeNanos = System.nanoTime() - start;
     }
 
