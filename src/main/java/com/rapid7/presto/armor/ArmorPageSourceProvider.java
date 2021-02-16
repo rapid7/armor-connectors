@@ -21,10 +21,12 @@ import com.facebook.presto.spi.ConnectorTableLayoutHandle;
 import com.facebook.presto.spi.SplitContext;
 import com.facebook.presto.spi.connector.ConnectorPageSourceProvider;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
+import com.rapid7.armor.interval.Interval;
 import com.rapid7.armor.read.fast.FastArmorBlockReader;
 
 import javax.inject.Inject;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -61,7 +63,14 @@ public class ArmorPageSourceProvider
         }
  
         try {
-	        Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(armorSplit.getShard(), tenant, layoutHandle.getTable().getTableName(), columns);        
+	        Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(
+	            armorSplit.getShard(),
+                tenant,
+                layoutHandle.getTable().getTableName(),
+                Interval.SINGLE,
+                Instant.now(),
+                columns
+            );
 	        return new ArmorPageSource(new ArmorBlockReader(readers), session, layoutHandle.getTable(), columns);
         } catch (Exception e) {
         	throw new RuntimeException(e);
