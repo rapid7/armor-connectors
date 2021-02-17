@@ -25,7 +25,7 @@ This repository which is NOT part of prestoDB.
  
 3. Find and identify PrestoServer, this will be your main class to run.
 
-4. To ensure armor is setup first create an armor.properties file and class it in presto-main/etc/catalog/armor.properties
+4. Create an armor.properties file and class it in presto-main/etc/catalog/armor.properties
 
 ```
 #
@@ -42,7 +42,7 @@ armor.store.location=mybucket
 #armor.store.location=/home/alee/nike/armor
 ```
 
-5. Modify the presto-main/etc/config.properties
+5. Add the path to presto-armor-connector's pom file to presto-main/etc/config.properties
 
 ```
 #
@@ -98,17 +98,21 @@ node-scheduler.include-coordinator=true
 
 ```
 
-6. Pass these VM argumnets into presto main
+6. Pass these VM arguments when running presto main
 
 ```
 -ea -XX:+UseG1GC -XX:G1HeapRegionSize=32M -XX:+UseGCOverheadLimit -XX:+ExplicitGCInvokesConcurrent -Xmx16G -Dconfig=etc/config.properties -Dlog.levels-file=etc/log.properties -Djdk.attach.allowAttachSelf=true
 ```
 
-7. You are all set and ready to go, launch it from your IDE.
+7. You will either need to delete etc/function-namespace/example.properties or start MySQL.
+
+8. In etc/log.properties, set com.facebook.presto to DEBUG.
+
+9. You are all set and ready to go, launch it from your IDE.
 
 Note: If you are testing against a S3 store, then ensure your IDE's session has AWS access to whichever S3 bucket.
 
-8. To interface with the server, use the CLI.
+10. To interface with the server, use the CLI.
 
 a) cd to presto/presto-cli/target
 b) ./presto-cli-$VERSION-SNAPSHOT-executable.jar

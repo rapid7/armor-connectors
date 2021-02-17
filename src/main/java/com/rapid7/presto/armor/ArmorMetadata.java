@@ -18,6 +18,7 @@ import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,7 +48,9 @@ import com.facebook.presto.spi.SchemaTablePrefix;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.rapid7.armor.interval.Interval;
 import com.rapid7.armor.schema.ColumnId;
+import com.rapid7.armor.schema.DataType;
 
 public class ArmorMetadata
         implements ConnectorMetadata
@@ -95,9 +98,11 @@ public class ArmorMetadata
         ArmorTableHandle handle = (ArmorTableHandle) table;
         try {
         	String org = handle.getSchema();
-	        List<ColumnMetadata> columns = armorClient.getColumnIds(org, handle.getTableName()).stream()
-	            .map(column -> toColumnMetaData(column))
-	            .collect(toImmutableList());
+        	List<ColumnId> columnIds = armorClient.getColumnIds(org, handle.getTableName(), Interval.SINGLE, Instant.now());
+            columnIds.add(new ColumnId("__interval", DataType.STRING.getCode()));
+            columnIds.add(new ColumnId("__intervalStart", DataType.STRING.getCode()));
+	        List<ColumnMetadata> columns = columnIds.stream().map(this::toColumnMetaData).collect(toImmutableList());
+
 	        return new ConnectorTableMetadata(handle.toSchemaTableName(), columns);
         } catch (Exception ioe) {
         	ioe.printStackTrace();
@@ -152,7 +157,10 @@ public class ArmorMetadata
         String tableName = armorTable.getTableName();
         String org = armorTable.getSchema();
         try {
-        	return armorClient.getColumnIds(org, tableName).stream().collect(toImmutableMap(ColumnId::getName, column -> toColumnHandle(column)));
+            List<ColumnId> columnIds = armorClient.getColumnIds(org, tableName, Interval.SINGLE, Instant.now());
+            columnIds.add(new ColumnId("__interval", DataType.STRING.getCode()));
+            columnIds.add(new ColumnId("__intervalStart", DataType.STRING.getCode()));
+        	return columnIds.stream().collect(toImmutableMap(ColumnId::getName, this::toColumnHandle));
         } catch (Exception ioe) {
         	ioe.printStackTrace();
         }
