@@ -103,7 +103,7 @@
         <air.test.jvmsize>4g</air.test.jvmsize>
 
         <air.javadoc.lint>-missing</air.javadoc.lint>
-        
+
         <dep.slf4j.version>1.7.26</dep.slf4j.version>
     </properties>
 
@@ -118,7 +118,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-    
+
     <dependencies>
         <dependency>
             <artifactId>armor-read</artifactId>
@@ -299,7 +299,90 @@
     <build>
         <pluginManagement>
             <plugins>
-            <plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>3.0.0-M2</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>extra-enforcer-rules</artifactId>
+                            <version>1.1</version>
+                        </dependency>
+                    </dependencies>
+                    <executions>
+                        <execution>
+                            <id>default</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <skip>${air.check.skip-enforcer}</skip>
+                        <fail>${air.check.fail-enforcer}</fail>
+                        <failFast>false</failFast>
+                        <rules>
+                            <!-- The following dependencies are hazardous 
+                                for builds. -->
+                            <bannedDependencies>
+                                <excludes>
+                                    <!-- clashes with commons-logging:commons-logging -->
+                                    <exclude>commons-logging:commons-logging-api</exclude>
+                                    <!-- clashes with cglib:cglib-nodep -->
+                                    <exclude>cglib:cglib</exclude>
+                                    <!-- old versions of junit repackage 
+                                        hamcrest -->
+                                    <exclude>junit:junit</exclude>
+                                    <!-- use guava -->
+                                    <exclude>com.google.collections:google-collections</exclude>
+                                    <!-- but not the badly numbered ones... -->
+                                    <exclude>com.google.guava:guava</exclude>
+                                    <!-- Contains FindBugs annotations, JSR-305 
+                                        and JCIP annotations -->
+                                    <exclude>com.google.code.findbugs:annotations</exclude>
+                                    <!-- Use the official version at javax.servlet:javax.servlet-api -->
+                                    <exclude>org.eclipse.jetty.orbit:javax.servlet</exclude>
+                                    <!-- Renamed airlift modules -->
+                                    <exclude>com.facebook.airlift:discovery-experimental</exclude>
+                                    <exclude>com.facebook.airlift:event-experimental</exclude>
+                                    <exclude>com.facebook.airlift:http-client-experimental</exclude>
+                                    <exclude>com.facebook.airlift:jmx-http-experimental</exclude>
+                                    <exclude>com.facebook.airlift:jmx-http-rpc-experimental</exclude>
+                                    <exclude>com.facebook.airlift:rack-experimental</exclude>
+                                    <exclude>com.facebook.airlift:rack-launcher-experimental</exclude>
+                                    <exclude>com.facebook.airlift:rack-packaging-experimental</exclude>
+                                    <exclude>com.facebook.airlift:rack-server-base-experimental</exclude>
+                                </excludes>
+                                <includes>
+                                    <!-- whitelist the well numbered guava 
+                                        releases -->
+                                    <include>com.google.guava:guava:[10.0.1,)</include>
+                                    <!-- newer versions of junit do not repackage 
+                                        hamcrest -->
+                                    <include>junit:junit:[4.11,)</include>
+                                </includes>
+                            </bannedDependencies>
+                            <banDuplicatePomDependencyVersions />
+                            <requireUpperBoundDeps />
+                            <requireMavenVersion>
+                                <version>${air.maven.version}</version>
+                            </requireMavenVersion>
+                            <requireJavaVersion>
+                                <version>${air.java.version}</version>
+                            </requireJavaVersion>
+                            <enforceBytecodeVersion>
+                                <maxJdkVersion>${project.build.targetJdk}</maxJdkVersion>
+                                <excludes>
+                                    <exclude>org.eclipse.jetty:jetty-alpn-java-client</exclude>
+                                    <exclude>org.eclipse.jetty:jetty-alpn-java-server</exclude>
+                                </excludes>
+                            </enforceBytecodeVersion>
+                        </rules>
+                    </configuration>
+                </plugin>
+                <plugin>
                     <groupId>com.mycila</groupId>
                     <artifactId>license-maven-plugin</artifactId>
                     <version>2.3</version>
@@ -528,7 +611,7 @@
     </build>
 
     <profiles>
-	     <profile>
+        <profile>
             <id>release</id>
             <activation>
                 <property>
@@ -556,10 +639,10 @@
                         <version>2.2.1</version>
                         <executions>
                             <execution>
-                            <id>attach-sources</id>
-                            <goals>
-                                <goal>jar-no-fork</goal>
-                            </goals>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -570,10 +653,10 @@
                         <version>2.9.1</version>
                         <executions>
                             <execution>
-                            <id>attach-javadocs</id>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
@@ -582,13 +665,13 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.5</version>
-                      <executions>
+                        <executions>
                             <execution>
-                            <id>sign-artifacts</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>sign</goal>
-                            </goals>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
                             </execution>
                         </executions>
                     </plugin>
