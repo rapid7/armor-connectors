@@ -365,7 +365,15 @@
                                 </includes>
                             </bannedDependencies>
                             <banDuplicatePomDependencyVersions />
-                            <requireUpperBoundDeps />
+                            <requireUpperBoundDeps>
+                                <excludes
+                                    combine.children="append">
+                                    <!-- TODO: fix this in Airlift resolver -->
+                                    <exclude>org.alluxio:alluxio-shaded-client</exclude>
+                                    <exclude>org.codehaus.plexus:plexus-utils</exclude>
+                                    <exclude>com.google.guava:guava</exclude>
+                                </excludes>
+                            </requireUpperBoundDeps>
                             <requireMavenVersion>
                                 <version>${air.maven.version}</version>
                             </requireMavenVersion>
@@ -520,24 +528,6 @@
                         <exclusionPatterns>
                             <exclusionPattern>org/joda/time/.*</exclusionPattern>
                         </exclusionPatterns>
-                    </configuration>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-enforcer-plugin</artifactId>
-                    <configuration>
-                        <rules>
-                            <requireUpperBoundDeps>
-                                <excludes
-                                    combine.children="append">
-                                    <!-- TODO: fix this in Airlift resolver -->
-                                    <exclude>org.alluxio:alluxio-shaded-client</exclude>
-                                    <exclude>org.codehaus.plexus:plexus-utils</exclude>
-                                    <exclude>com.google.guava:guava</exclude>
-                                </excludes>
-                            </requireUpperBoundDeps>
-                        </rules>
                     </configuration>
                 </plugin>
             </plugins>
