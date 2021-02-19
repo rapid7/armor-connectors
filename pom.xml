@@ -12,7 +12,7 @@
 
     <groupId>com.rapid7.presto</groupId>
     <artifactId>presto-armor-connector</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>presto-plugin</packaging>
 
     <name>presto-armor-connector</name>
@@ -22,7 +22,7 @@
     <scm>
         <connection>scm:git:git://github.com/rapid7/presto-armor-connector.git</connection>
         <url>https://github.com/rapid7/presto-armor-connector</url>
-        <tag>1.0.0-SNAPSHOT</tag>
+        <tag>0.0.2-SNAPSHOT</tag>
     </scm>
 
     <distributionManagement>
@@ -103,7 +103,7 @@
         <dependencies>
         <dependency>
             <artifactId>armor-read</artifactId>
-            <version>0.0.2-SNAPSHOT</version>
+            <version>0.0.2</version>
             <groupId>com.rapid7</groupId>
             <exclusions>
                 <exclusion>
