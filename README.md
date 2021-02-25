@@ -106,7 +106,7 @@ node-scheduler.include-coordinator=true
 
 7. You will either need to delete etc/function-namespace/example.properties or start MySQL.
 
-8. In etc/log.properties, set com.facebook.presto to DEBUG.
+**8. In etc/log.properties, set com.facebook.presto to DEBUG otherwise you may just get see an error with no stacktrace.**
 
 9. You are all set and ready to go, launch it from your IDE.
 
