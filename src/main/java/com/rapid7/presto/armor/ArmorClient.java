@@ -18,7 +18,6 @@ import com.rapid7.armor.interval.Interval;
 import com.rapid7.armor.meta.ShardMetadata;
 import com.rapid7.armor.read.fast.FastArmorBlockReader;
 import com.rapid7.armor.read.fast.FastArmorReader;
-import com.rapid7.armor.read.fast.NullArmorBlockReader;
 import com.rapid7.armor.schema.ColumnId;
 import com.rapid7.armor.shard.ShardId;
 import com.rapid7.armor.store.FileReadStore;
@@ -79,9 +78,9 @@ public class ArmorClient {
         String valueIntervalStart = interval.getIntervalStart(timestamp);
         for (ColumnHandle column : columns) {
             ArmorColumnHandle armorHandle = (ArmorColumnHandle) column;
-            if ("__interval".equals(armorHandle.getName())) {
+            if (ArmorConstants.INTERVAL.equals(armorHandle.getName())) {
                 readers.put(armorHandle.getName(), armorReader.getFixedValueColumn(tenant, table, interval, timestamp, shardNum, valueInterval));
-            } else if ("__intervalStart".equals(armorHandle.getName())) {
+            } else if (ArmorConstants.INTERVAL_START.equals(armorHandle.getName())) {
                 readers.put(armorHandle.getName(), armorReader.getFixedValueColumn(tenant, table, interval, timestamp, shardNum, valueIntervalStart));
             } else {
                 readers.put(armorHandle.getName(), armorReader.getColumn(tenant, table, interval, timestamp, armorHandle.getName(), shardNum));

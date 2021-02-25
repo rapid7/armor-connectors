@@ -25,8 +25,6 @@ import com.facebook.presto.spi.transaction.IsolationLevel;
 
 import javax.inject.Inject;
 
-import java.util.Set;
-
 import static com.facebook.presto.spi.transaction.IsolationLevel.READ_COMMITTED;
 import static com.facebook.presto.spi.transaction.IsolationLevel.checkConnectorSupports;
 import static java.util.Objects.requireNonNull;

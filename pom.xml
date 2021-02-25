@@ -22,7 +22,7 @@
     <scm>
         <connection>scm:git:git://github.com/rapid7/presto-armor-connector.git</connection>
         <url>https://github.com/rapid7/presto-armor-connector</url>
-        <tag>0.0.2-SNAPSHOT</tag>
+        <tag>0.0.3-SNAPSHOT</tag>
     </scm>
 
     <licenses>
@@ -122,7 +122,7 @@
     <dependencies>
         <dependency>
             <artifactId>armor-read</artifactId>
-            <version>0.0.4</version>
+            <version>0.0.5-SNAPSHOT</version>
             <groupId>com.rapid7</groupId>
             <exclusions>
                 <exclusion>

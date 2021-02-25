@@ -99,8 +99,8 @@ public class ArmorMetadata
         try {
         	String org = handle.getSchema();
         	List<ColumnId> columnIds = armorClient.getColumnIds(org, handle.getTableName(), Interval.SINGLE, Instant.now());
-            columnIds.add(new ColumnId("__interval", DataType.STRING.getCode()));
-            columnIds.add(new ColumnId("__intervalStart", DataType.STRING.getCode()));
+            columnIds.add(new ColumnId(ArmorConstants.INTERVAL, DataType.STRING.getCode()));
+            columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.STRING.getCode()));
 	        List<ColumnMetadata> columns = columnIds.stream().map(this::toColumnMetaData).collect(toImmutableList());
 
 	        return new ConnectorTableMetadata(handle.toSchemaTableName(), columns);
@@ -158,8 +158,8 @@ public class ArmorMetadata
         String org = armorTable.getSchema();
         try {
             List<ColumnId> columnIds = armorClient.getColumnIds(org, tableName, Interval.SINGLE, Instant.now());
-            columnIds.add(new ColumnId("__interval", DataType.STRING.getCode()));
-            columnIds.add(new ColumnId("__intervalStart", DataType.STRING.getCode()));
+            columnIds.add(new ColumnId(ArmorConstants.INTERVAL, DataType.STRING.getCode()));
+            columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.STRING.getCode()));
         	return columnIds.stream().collect(toImmutableMap(ColumnId::getName, this::toColumnHandle));
         } catch (Exception ioe) {
         	ioe.printStackTrace();

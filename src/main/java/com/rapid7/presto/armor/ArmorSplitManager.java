@@ -24,6 +24,8 @@ import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import com.rapid7.armor.interval.Interval;
 import com.rapid7.armor.shard.ShardId;
 
+import io.airlift.slice.Slice;
+
 import javax.inject.Inject;
 
 import java.time.Instant;
@@ -61,14 +63,30 @@ public class ArmorSplitManager
             columnDomains -> {
               for (TupleDomain.ColumnDomain<ColumnHandle> columnDomain : columnDomains) {
                 ArmorColumnHandle columnHandle = (ArmorColumnHandle) columnDomain.getColumn();
-                if ("__interval".equals(columnHandle.getName())) {
-                  intervalAtomic.set((String) columnDomain.getDomain().getNullableSingleValue());
+                if (ArmorConstants.INTERVAL.equals(columnHandle.getName())) {
+                  Object value = columnDomain.getDomain().getNullableSingleValue();
+                  if (value != null) {
+                    if (value instanceof Slice)
+                      intervalAtomic.set(((Slice)value).toStringUtf8());
+                    else if (value instanceof String)
+                      intervalAtomic.set((String) value);
+                    else
+                        throw new RuntimeException("The " + ArmorConstants.INTERVAL + " type " + value.getClass() + " is unsupported");
+                  }
                 }
-                if ("__intervalStart".equals(columnHandle.getName())) {
-                  timestampAtomic.set((String) columnDomain.getDomain().getNullableSingleValue());
+                if (ArmorConstants.INTERVAL_START.equals(columnHandle.getName())) {
+                  Object value = columnDomain.getDomain().getNullableSingleValue();
+                  if (value != null) {
+                    if (value instanceof Slice)
+                      timestampAtomic.set(((Slice)value).toStringUtf8());
+                    else if (value instanceof String)
+                      timestampAtomic.set((String) value);
+                    else
+                      throw new RuntimeException("The " + ArmorConstants.INTERVAL_START + " type " + value.getClass() + " is unsupported");
                 }
               }
             }
+          }
         );
 
         String interval = intervalAtomic.get();
@@ -84,8 +102,8 @@ public class ArmorSplitManager
 	        List<ShardId> shards = armorClient.getShardIds(
 	            org,
                 table,
-                Interval.toInterval(interval),
-                Instant.parse(timestamp)
+                Interval.toInterval((String) interval),
+                Instant.parse((String) timestamp)
             );
 	        List<ArmorSplit> splits = shards.stream()
 	                .map(shard -> new ArmorSplit(shard.getShardNum()))
