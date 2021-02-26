@@ -4,6 +4,7 @@ package com.rapid7.presto.armor;
 import static com.facebook.presto.common.type.IntegerType.INTEGER;
 import static com.facebook.presto.common.type.BigintType.BIGINT;
 import static com.facebook.presto.common.type.VarcharType.VARCHAR;
+import static com.facebook.presto.common.type.TimestampWithTimeZoneType.TIMESTAMP_WITH_TIME_ZONE;
 
 import java.util.Map;
 import java.util.Optional;
@@ -51,6 +52,9 @@ public class ArmorBlockReader {
             FastArmorBlock ab = reader.getLongBlock(reader.nextBatchSize(batchSize));
             Optional<boolean[]> nullOption = ab.getValuesIsNull() == null || ab.getValuesIsNull().length == 0 ? Optional.empty() : Optional.of(ab.getValuesIsNull());
             return new LongArrayBlock(ab.getLongValueArray().length, nullOption, ab.getLongValueArray());
+        } else if (type.equals(TIMESTAMP_WITH_TIME_ZONE)) {
+            FastArmorBlock ab = reader.getLongBlock(reader.nextBatchSize(batchSize));
+            return new LongArrayBlock(ab.getLongValueArray().length, Optional.empty(), ab.getLongValueArray());
         }
         else
             throw new UnsupportedOperationException("Type not supported: " + type);

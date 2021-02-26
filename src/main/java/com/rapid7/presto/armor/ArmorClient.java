@@ -18,6 +18,8 @@ import com.rapid7.armor.interval.Interval;
 import com.rapid7.armor.meta.ShardMetadata;
 import com.rapid7.armor.read.fast.FastArmorBlockReader;
 import com.rapid7.armor.read.fast.FastArmorReader;
+import com.rapid7.armor.read.predicate.InstantPredicate;
+import com.rapid7.armor.read.predicate.StringPredicate;
 import com.rapid7.armor.schema.ColumnId;
 import com.rapid7.armor.shard.ShardId;
 import com.rapid7.armor.store.FileReadStore;
@@ -60,8 +62,16 @@ public class ArmorClient {
         return readStore.getTenants();
     }
 
-    public List<ShardId> getShardIds(String org, String tableName, Interval interval, Instant timestamp) throws IOException {
-        return readStore.findShardIds(org, tableName, interval, timestamp);
+    public List<ShardId> getShardIds(String org, String tableName, Interval interval) throws IOException {
+        return readStore.findShardIds(org, tableName, interval);
+    }
+    
+    public List<ShardId> getShardIds(String org, String tableName, Interval interval, InstantPredicate intervalStart) throws IOException {
+        return readStore.findShardIds(org, tableName, interval, intervalStart);
+    }
+    
+    public List<ShardId> getShardIds(String org, String tableName, StringPredicate interval, InstantPredicate intervalStart) throws IOException {
+        return readStore.findShardIds(org, tableName, interval, intervalStart);
     }
     
     public long count(int shardNum, String tenant, String table, Interval interval, Instant timestamp) {
@@ -75,13 +85,13 @@ public class ArmorClient {
         FastArmorReader armorReader = new FastArmorReader(readStore);
         HashMap<String, FastArmorBlockReader> readers = new HashMap<>();
         String valueInterval = interval.name();
-        String valueIntervalStart = interval.getIntervalStart(timestamp);
         for (ColumnHandle column : columns) {
             ArmorColumnHandle armorHandle = (ArmorColumnHandle) column;
             if (ArmorConstants.INTERVAL.equals(armorHandle.getName())) {
                 readers.put(armorHandle.getName(), armorReader.getFixedValueColumn(tenant, table, interval, timestamp, shardNum, valueInterval));
             } else if (ArmorConstants.INTERVAL_START.equals(armorHandle.getName())) {
-                readers.put(armorHandle.getName(), armorReader.getFixedValueColumn(tenant, table, interval, timestamp, shardNum, valueIntervalStart));
+                Instant valueIntervalStart = Instant.parse(interval.getIntervalStart(timestamp));
+                readers.put(armorHandle.getName(), armorReader.getFixedValueColumn(tenant, table, interval, timestamp, shardNum, valueIntervalStart.toEpochMilli()));
             } else {
                 readers.put(armorHandle.getName(), armorReader.getColumn(tenant, table, interval, timestamp, armorHandle.getName(), shardNum));
             }

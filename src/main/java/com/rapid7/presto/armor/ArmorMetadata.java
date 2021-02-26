@@ -34,6 +34,8 @@ import com.facebook.presto.common.type.RealType;
 import com.facebook.presto.common.type.Type;
 import com.facebook.presto.common.type.TypeManager;
 import com.facebook.presto.common.type.VarcharType;
+import com.facebook.presto.common.type.TimestampWithTimeZoneType;
+
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ColumnMetadata;
 import com.facebook.presto.spi.ConnectorSession;
@@ -100,7 +102,7 @@ public class ArmorMetadata
         	String org = handle.getSchema();
         	List<ColumnId> columnIds = armorClient.getColumnIds(org, handle.getTableName(), Interval.SINGLE, Instant.now());
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL, DataType.STRING.getCode()));
-            columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.STRING.getCode()));
+            columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.DATETIME.getCode()));
 	        List<ColumnMetadata> columns = columnIds.stream().map(this::toColumnMetaData).collect(toImmutableList());
 
 	        return new ConnectorTableMetadata(handle.toSchemaTableName(), columns);
@@ -115,19 +117,21 @@ public class ArmorMetadata
     }
 
     private Type toColumnType(ColumnId column) {
-    	switch (column.dataType()) {
+    	 switch (column.dataType()) {
     		case LONG:
-    			return BigintType.BIGINT;
+    			 return BigintType.BIGINT;
     		case DOUBLE:
-    			return DoubleType.DOUBLE;
+    			 return DoubleType.DOUBLE;
     		case BOOLEAN:
-    			return BooleanType.BOOLEAN;
+    			 return BooleanType.BOOLEAN;
     		case FLOAT:
-    			return RealType.REAL;
+    			 return RealType.REAL;
     		case INTEGER:
-    			return IntegerType.INTEGER;
+    			 return IntegerType.INTEGER;
     		case STRING:
-    			return VarcharType.VARCHAR;
+    			 return VarcharType.VARCHAR;
+    		case DATETIME:
+        return TimestampWithTimeZoneType.TIMESTAMP_WITH_TIME_ZONE;
     		default:
     			break;
     		}
@@ -159,7 +163,7 @@ public class ArmorMetadata
         try {
             List<ColumnId> columnIds = armorClient.getColumnIds(org, tableName, Interval.SINGLE, Instant.now());
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL, DataType.STRING.getCode()));
-            columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.STRING.getCode()));
+            columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.DATETIME.getCode()));
         	return columnIds.stream().collect(toImmutableMap(ColumnId::getName, this::toColumnHandle));
         } catch (Exception ioe) {
         	ioe.printStackTrace();
