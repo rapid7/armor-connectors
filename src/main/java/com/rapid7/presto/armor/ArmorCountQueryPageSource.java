@@ -38,7 +38,7 @@ public class ArmorCountQueryPageSource
         long start = System.nanoTime();
         String tenant = table.getTable().getSchema();
         String tableName = table.getTable().getTableName();
-        count = client.count(split.getShard(), tenant, tableName, Interval.SINGLE, Instant.now());
+        count = client.count(split.getShard(), tenant, tableName, Interval.toInterval(split.getInterval()), Instant.parse(split.getIntervalStart()));
         readTimeNanos = System.nanoTime() - start;
     }
 

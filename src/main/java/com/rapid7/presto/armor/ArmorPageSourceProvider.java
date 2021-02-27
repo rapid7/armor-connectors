@@ -64,13 +64,13 @@ public class ArmorPageSourceProvider
  
         try {
 	        Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(
-	            armorSplit.getShard(),
+	               armorSplit.getShard(),
                 tenant,
                 layoutHandle.getTable().getTableName(),
-                Interval.SINGLE,
-                Instant.now(),
+                Interval.toInterval(armorSplit.getInterval()),
+                Instant.parse(armorSplit.getIntervalStart()),
                 columns
-            );
+         );
 	        return new ArmorPageSource(new ArmorBlockReader(readers), session, layoutHandle.getTable(), columns);
         } catch (Exception e) {
         	throw new RuntimeException(e);

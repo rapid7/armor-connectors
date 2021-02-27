@@ -50,20 +50,20 @@ public class ArmorClient {
             throw new RuntimeException("The store type " + config.getStoreType() + " is not supported yet");
     }
 
-    public List<ColumnId> getColumnIds(String org, String tableName, Interval interval, Instant timestamp) throws IOException {
-        return readStore.getColumnIds(org, tableName, interval, timestamp);
+    public List<ColumnId> getColumnIds(String org, String tableName) {
+      return readStore.getColumnIds(org, tableName);
     }
 
-    public Collection<String> getTables(String org) throws IOException {
-        return readStore.getTables(org);
+    public Collection<String> getTables(String org) {
+      return readStore.getTables(org);
     }
 
     public List<String> getSchemas() {
-        return readStore.getTenants();
+      return readStore.getTenants();
     }
 
     public List<ShardId> getShardIds(String org, String tableName, Interval interval) throws IOException {
-        return readStore.findShardIds(org, tableName, interval);
+      return readStore.findShardIds(org, tableName, interval);
     }
     
     public List<ShardId> getShardIds(String org, String tableName, Interval interval, InstantPredicate intervalStart) throws IOException {

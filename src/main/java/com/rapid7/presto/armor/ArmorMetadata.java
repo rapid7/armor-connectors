@@ -100,7 +100,7 @@ public class ArmorMetadata
         ArmorTableHandle handle = (ArmorTableHandle) table;
         try {
         	String org = handle.getSchema();
-        	List<ColumnId> columnIds = armorClient.getColumnIds(org, handle.getTableName(), Interval.SINGLE, Instant.now());
+        	List<ColumnId> columnIds = armorClient.getColumnIds(org, handle.getTableName());
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL, DataType.STRING.getCode()));
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.DATETIME.getCode()));
 	        List<ColumnMetadata> columns = columnIds.stream().map(this::toColumnMetaData).collect(toImmutableList());
@@ -146,12 +146,8 @@ public class ArmorMetadata
     @Override
     public List<SchemaTableName> listTables(ConnectorSession session, Optional<String> schemaName)
     {
-    	try {
 	    	String org = schemaName.get();
 	    	return armorClient.getTables(org).stream().map(tableName -> new SchemaTableName(org, tableName)).collect(toImmutableList());
-    	} catch (IOException e) {
-    		throw new RuntimeException(e);
-    	}
     }
 
     @Override
@@ -161,7 +157,7 @@ public class ArmorMetadata
         String tableName = armorTable.getTableName();
         String org = armorTable.getSchema();
         try {
-            List<ColumnId> columnIds = armorClient.getColumnIds(org, tableName, Interval.SINGLE, Instant.now());
+            List<ColumnId> columnIds = armorClient.getColumnIds(org, tableName);
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL, DataType.STRING.getCode()));
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.DATETIME.getCode()));
         	return columnIds.stream().collect(toImmutableMap(ColumnId::getName, this::toColumnHandle));

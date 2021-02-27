@@ -28,11 +28,15 @@ public class ArmorSplit
         implements ConnectorSplit
 {
     private final int shard;
-
+    private final String interval;
+    private final String intervalStart;
+ 
     @JsonCreator
-    public ArmorSplit(@JsonProperty("shard") int shard)
+    public ArmorSplit(@JsonProperty("shard") int shard, @JsonProperty("interval") String interval, @JsonProperty("intervalStart") String intervalStart)
     {
         this.shard = shard;
+        this.interval = interval;
+        this.intervalStart = intervalStart;
     }
 
     
@@ -41,6 +45,16 @@ public class ArmorSplit
     public int getShard()
     {
         return shard;
+    }
+    
+    @JsonProperty
+    public String getInterval() {
+        return interval;
+    }
+    
+    @JsonProperty
+    public String getIntervalStart() {
+        return intervalStart;
     }
 
     
@@ -63,13 +77,13 @@ public class ArmorSplit
     {
         return toStringHelper(this)
                 .addValue(shard)
+                .addValue(interval)
+                .addValue(intervalStart)
                 .toString();
     }
 
-
-
-	@Override
-	public List<HostAddress> getPreferredNodes(List<HostAddress> sortedCandidates) {
-		return null;
-	}
+    @Override
+    public List<HostAddress> getPreferredNodes(List<HostAddress> sortedCandidates) {
+        return null;
+    }
 }
