@@ -17,8 +17,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.Objects.requireNonNull;
 
-import java.io.IOException;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -26,6 +24,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.type.BigintType;
 import com.facebook.presto.common.type.BooleanType;
 import com.facebook.presto.common.type.DoubleType;
@@ -50,13 +49,13 @@ import com.facebook.presto.spi.SchemaTablePrefix;
 import com.facebook.presto.spi.connector.ConnectorMetadata;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.rapid7.armor.interval.Interval;
 import com.rapid7.armor.schema.ColumnId;
 import com.rapid7.armor.schema.DataType;
 
 public class ArmorMetadata
         implements ConnectorMetadata
 {
+    private static final Logger LOG = Logger.get(ArmorMetadata.class);
     private ArmorClient armorClient;
    
     @Inject
@@ -161,8 +160,8 @@ public class ArmorMetadata
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL, DataType.STRING.getCode()));
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.DATETIME.getCode()));
         	return columnIds.stream().collect(toImmutableMap(ColumnId::getName, this::toColumnHandle));
-        } catch (Exception ioe) {
-        	ioe.printStackTrace();
+        } catch (Exception e) {
+         LOG.error(e, "Unexpected error getting column handles");
         }
         return null;
     }

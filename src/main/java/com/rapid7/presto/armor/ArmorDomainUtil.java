@@ -10,10 +10,12 @@ import com.facebook.presto.common.predicate.Marker;
 import com.facebook.presto.common.predicate.Range;
 import com.facebook.presto.common.predicate.SortedRangeSet;
 import com.facebook.presto.common.predicate.ValueSet;
+import com.facebook.presto.common.type.TimestampWithTimeZoneType;
 import com.facebook.presto.common.predicate.Marker.Bound;
 import com.rapid7.armor.read.predicate.InstantPredicate;
 import com.rapid7.armor.read.predicate.StringPredicate;
 import com.rapid7.armor.store.Operator;
+import static com.facebook.presto.common.type.DateTimeEncoding.unpackMillisUtc;
 
 import io.airlift.slice.Slice;
 
@@ -95,7 +97,7 @@ public class ArmorDomainUtil {
                 // In clause style predicate
                 List<Instant> filters = new ArrayList<>();
                 for (Range range : ranges) {
-                   Long time = (Long) range.getSingleValue();
+                   Long time = extractTimeValue(range.getLow()); // Range values are single set for low.
                    filters.add(Instant.ofEpochMilli(time));
                 }
                 return new InstantPredicate(ArmorConstants.INTERVAL_START, Operator.IN, filters);
@@ -111,7 +113,7 @@ public class ArmorDomainUtil {
                         operator = Operator.LESS_THAN;
                     else if (highMarker.getBound() == Bound.EXACTLY && lowMarker.getBound() == Bound.ABOVE)
                         operator = Operator.LESS_THAN_EQUAL;
-                    long time = (Long) highMarker.getValue();
+                    long time = extractTimeValue(highMarker);
                     return new InstantPredicate(ArmorConstants.INTERVAL_START, operator, Arrays.asList(Instant.ofEpochMilli(time)));
                 }
                 // For > and >=
@@ -119,16 +121,16 @@ public class ArmorDomainUtil {
                     if (highMarker.getBound() == Bound.BELOW && lowMarker.getBound() == Bound.EXACTLY )
                         operator = Operator.GREATER_THAN_EQUAL;
                     else if (highMarker.getBound() == Bound.BELOW && lowMarker.getBound() == Bound.ABOVE)
-                        operator = Operator.GREATER_THAN;
-                    long time = (Long) lowMarker.getValue();
+                        operator = Operator.GREATER_THAN;                    
+                    final long time = extractTimeValue(lowMarker);
                     return new InstantPredicate(ArmorConstants.INTERVAL_START, operator, Arrays.asList(Instant.ofEpochMilli(time)));
                 }
                 // For = or between
                 if (highMarker.getValueBlock().isPresent() && highMarker.getValueBlock().isPresent()) {
                     if (highMarker.getBound() == Bound.EXACTLY && lowMarker.getBound() == Bound.EXACTLY) {
                        // Between and equal are the same only way to determine the difference is if the values are different.
-                       long highValue = (Long) highMarker.getValue();
-                       long lowValue = (Long) lowMarker.getValue();
+                       long highValue = extractTimeValue(highMarker);
+                       long lowValue = extractTimeValue(lowMarker);
                        if (highValue == lowValue) {
                          return new InstantPredicate(ArmorConstants.INTERVAL_START, Operator.EQUALS, Arrays.asList(Instant.ofEpochMilli(highValue)));
                        } else {
@@ -142,5 +144,12 @@ public class ArmorDomainUtil {
             }
         }
         throw new RuntimeException("Unable to resolve predicate into armor predicate");
+    }
+    
+    private static long extractTimeValue(Marker marker) {
+        if (marker.getType() instanceof TimestampWithTimeZoneType) 
+           return unpackMillisUtc((Long) marker.getValue());
+        else
+           return (Long) marker.getValue();
     }
 }

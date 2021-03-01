@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -28,6 +30,7 @@ import com.rapid7.armor.shard.ShardId;
 import com.rapid7.armor.store.FileReadStore;
 import com.rapid7.armor.store.ReadStore;
 import com.rapid7.armor.store.S3ReadStore;
+import static com.facebook.presto.common.type.DateTimeEncoding.packDateTimeWithZone;
 
 public class ArmorClient {
   private ReadStore readStore;
@@ -60,14 +63,11 @@ public class ArmorClient {
     String key = org + "_" + tableName;
     List<ColumnId> columns = columnIdCache.getIfPresent(key);
     if (columns != null)
-      return columns;
-    columns = readStore.getColumnIds(org, tableName);
-    if (columns.isEmpty())
-      return columns;
-    else {
+      return columns.stream().collect(Collectors.toList());
+    columns = Collections.unmodifiableList(readStore.getColumnIds(org, tableName));
+    if (!columns.isEmpty())
       columnIdCache.put(key, columns);
-      return columns;
-    }
+    return columns.stream().collect(Collectors.toList());
   }
 
   public Collection<String> getTables(String org) {
@@ -82,8 +82,8 @@ public class ArmorClient {
     return readStore.findShardIds(org, tableName, interval);
   }
 
-  public List<ShardId> getShardIds(String org, String tableName, Interval interval, InstantPredicate intervalStart) throws IOException {
-    return readStore.findShardIds(org, tableName, interval, intervalStart);
+  public List<ShardId> getShardIds(String org, String tableName, Interval interval, InstantPredicate intervalStartPredicate) throws IOException {
+    return readStore.findShardIds(org, tableName, interval, intervalStartPredicate);
   }
 
   public List<ShardId> getShardIds(String org, String tableName, StringPredicate interval, InstantPredicate intervalStart) throws IOException {
@@ -97,18 +97,16 @@ public class ArmorClient {
     return metadata.getColumnMetadata().get(0).getNumRows();
   }
 
-  public Map<String, FastArmorBlockReader> getFastReaders(int shardNum, String tenant, String table, Interval interval, Instant timestamp, List<ColumnHandle> columns) throws IOException {
+  public Map<String, FastArmorBlockReader> getFastReaders(ShardId shardId, List<ColumnHandle> columns) throws IOException {
     FastArmorReader armorReader = new FastArmorReader(readStore);
     HashMap<String, FastArmorBlockReader> readers = new HashMap<>();
-    String valueInterval = interval.name();
-    ShardId shardId = ShardId.buildShardId(tenant, table, interval, timestamp, shardNum);
     for (ColumnHandle column : columns) {
       ArmorColumnHandle armorHandle = (ArmorColumnHandle) column;
       if (ArmorConstants.INTERVAL.equals(armorHandle.getName())) {
-        readers.put(armorHandle.getName(), armorReader.getFixedValueColumn(shardId, valueInterval));
+        readers.put(armorHandle.getName(), armorReader.getFixedValueColumn(shardId, shardId.getInterval()));
       } else if (ArmorConstants.INTERVAL_START.equals(armorHandle.getName())) {
-        Instant valueIntervalStart = Instant.parse(interval.getIntervalStart(timestamp));
-        readers.put(armorHandle.getName(), armorReader.getFixedValueColumn(shardId, valueIntervalStart.toEpochMilli()));
+        Instant valueIntervalStart = Instant.parse(shardId.getIntervalStart());
+        readers.put(armorHandle.getName(), armorReader.getFixedValueColumn(shardId, packDateTimeWithZone(valueIntervalStart.toEpochMilli(), "UTC")));
       } else {
         readers.put(armorHandle.getName(), armorReader.getColumn(shardId, armorHandle.getName()));
       }

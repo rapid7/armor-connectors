@@ -121,9 +121,9 @@
 
     <dependencies>
         <dependency>
-            <artifactId>armor-read</artifactId>
-            <version>0.0.10</version>
             <groupId>com.rapid7</groupId>
+            <artifactId>armor-read</artifactId>
+            <version>0.0.11-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>tech.tablesaw</groupId>

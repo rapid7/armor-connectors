@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableList;
 public class ArmorPageSource implements ConnectorPageSource
 {
     private static final Logger LOG = Logger.get(ArmorPageSource.class);
-    private ArmorTableHandle table;
     private final List<ColumnHandle> columns;
     private long completedBytes;
     private long readTimeNanos;
@@ -43,15 +42,13 @@ public class ArmorPageSource implements ConnectorPageSource
     private boolean closed = false;
     private Executor executor = Executors.newFixedThreadPool(10);
     public ArmorPageSource(
-            ArmorBlockReader armorBlockReader,
-            ConnectorSession session,
-            ArmorTableHandle table,
-            List<ColumnHandle> columns)
+        ArmorBlockReader armorBlockReader,
+        ConnectorSession session,
+        List<ColumnHandle> columns)
     {
         requireNonNull(columns, "columns is null");
         this.armorBlockReader = armorBlockReader;
         this.columns = ImmutableList.copyOf(columns);
-        this.table = table;
     }
 
     @Override

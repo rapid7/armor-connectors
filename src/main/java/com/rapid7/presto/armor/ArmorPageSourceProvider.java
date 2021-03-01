@@ -23,6 +23,7 @@ import com.facebook.presto.spi.connector.ConnectorPageSourceProvider;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import com.rapid7.armor.interval.Interval;
 import com.rapid7.armor.read.fast.FastArmorBlockReader;
+import com.rapid7.armor.shard.ShardId;
 
 import javax.inject.Inject;
 
@@ -62,16 +63,16 @@ public class ArmorPageSourceProvider
             return new ArmorCountQueryPageSource(armorClient, session, layoutHandle, armorSplit);
         }
  
+        String table = layoutHandle.getTable().getTableName();
         try {
-	        Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(
-	               armorSplit.getShard(),
-                tenant,
-                layoutHandle.getTable().getTableName(),
-                Interval.toInterval(armorSplit.getInterval()),
-                Instant.parse(armorSplit.getIntervalStart()),
-                columns
-         );
-	        return new ArmorPageSource(new ArmorBlockReader(readers), session, layoutHandle.getTable(), columns);
+         ShardId shardId = ShardId.buildShardId(
+             tenant,
+             table,
+             Interval.toInterval(armorSplit.getInterval()),
+             Instant.parse(armorSplit.getIntervalStart()),
+             armorSplit.getShard());
+	        Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(shardId, columns);
+	        return new ArmorPageSource(new ArmorBlockReader(readers), session, columns);
         } catch (Exception e) {
         	throw new RuntimeException(e);
         }
