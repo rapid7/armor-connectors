@@ -15,6 +15,8 @@ package com.rapid7.presto.armor;
 
 
 import com.rapid7.armor.interval.Interval;
+import com.rapid7.armor.shard.ShardId;
+
 import static java.util.Objects.requireNonNull;
 
 import com.facebook.presto.common.Page;
@@ -38,7 +40,8 @@ public class ArmorCountQueryPageSource
         long start = System.nanoTime();
         String tenant = table.getTable().getSchema();
         String tableName = table.getTable().getTableName();
-        count = client.count(split.getShard(), tenant, tableName, Interval.toInterval(split.getInterval()), Instant.parse(split.getIntervalStart()));
+        ShardId shardId = ShardId.buildShardId(tenant, tableName, Interval.toInterval(split.getInterval()), Instant.parse(split.getIntervalStart()), split.getShard());
+        count = client.count(shardId);
         readTimeNanos = System.nanoTime() - start;
     }
 
