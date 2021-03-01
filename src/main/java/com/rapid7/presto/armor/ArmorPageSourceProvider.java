@@ -13,6 +13,13 @@
  */
 package com.rapid7.presto.armor;
 
+import com.facebook.presto.common.Page;
+import com.facebook.presto.common.predicate.TupleDomain;
+import com.facebook.presto.common.predicate.TupleDomain.ColumnDomain;
+import com.facebook.presto.common.type.BigintType;
+import com.facebook.presto.common.type.IntegerType;
+import com.facebook.presto.common.type.Type;
+import com.facebook.presto.common.type.VarcharType;
 import com.facebook.presto.spi.ColumnHandle;
 import com.facebook.presto.spi.ConnectorPageSource;
 import com.facebook.presto.spi.ConnectorSession;
@@ -22,26 +29,35 @@ import com.facebook.presto.spi.SplitContext;
 import com.facebook.presto.spi.connector.ConnectorPageSourceProvider;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import com.rapid7.armor.interval.Interval;
+import com.rapid7.armor.meta.ColumnMetadata;
+import com.rapid7.armor.read.DictionaryReader;
 import com.rapid7.armor.read.fast.FastArmorBlockReader;
+import com.rapid7.armor.read.predicate.ColumnMetadataPredicateUtils;
+import com.rapid7.armor.read.predicate.NumericPredicate;
+import com.rapid7.armor.read.predicate.Predicate;
+import com.rapid7.armor.read.predicate.StringPredicate;
 import com.rapid7.armor.shard.ShardId;
+import com.rapid7.armor.store.Operator;
 
 import javax.inject.Inject;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
 public class ArmorPageSourceProvider
-        implements ConnectorPageSourceProvider
+implements ConnectorPageSourceProvider
 {
     private ArmorClient armorClient;
 
     @Inject
     public ArmorPageSourceProvider(ArmorClient armorClient)
     {
-    	this.armorClient = armorClient;
+        this.armorClient = armorClient;
     }
 
     @Override
@@ -58,23 +74,153 @@ public class ArmorPageSourceProvider
         ArmorTableLayoutHandle layoutHandle = (ArmorTableLayoutHandle) layout;
         String tenant = layoutHandle.getTable().getSchema();
         ArmorSplit armorSplit = (ArmorSplit) split;
-        
+
         if (columns.isEmpty()) {
             return new ArmorCountQueryPageSource(armorClient, session, layoutHandle, armorSplit);
         }
- 
+
         String table = layoutHandle.getTable().getTableName();
         try {
-         ShardId shardId = ShardId.buildShardId(
-             tenant,
-             table,
-             Interval.toInterval(armorSplit.getInterval()),
-             Instant.parse(armorSplit.getIntervalStart()),
-             armorSplit.getShard());
-	        Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(shardId, columns);
-	        return new ArmorPageSource(new ArmorBlockReader(readers), session, columns);
+            ShardId shardId = ShardId.buildShardId(
+                    tenant,
+                    table,
+                    Interval.toInterval(armorSplit.getInterval()),
+                    Instant.parse(armorSplit.getIntervalStart()),
+                    armorSplit.getShard());
+            // Determine if there are any predicates we can use. This will allow to have the fast readers load the entity and value dictionary.
+            // NOTE: Pushdowns are only provided if its AND or single predicate conditions. ORs returns ALL
+            Map<String, Predicate<?>> pushDownPredicates = buildPushDownPredicates(layoutHandle);
+
+            Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(shardId, columns);
+            if (pushDownPredicates != null && !pushDownPredicates.isEmpty()) {
+                boolean allPredicates = false;
+                for (Map.Entry<String, Predicate<?>> entries : pushDownPredicates.entrySet()) {
+                    String name = entries.getKey();
+                    Predicate<?> predicate = entries.getValue();
+                    FastArmorBlockReader reader = readers.get(name);
+                    if (predicate instanceof StringPredicate) {
+                        DictionaryReader dictionary = reader.valueDictionary();
+                        if (dictionary.evaulatePredicate((StringPredicate) predicate)) {
+                            allPredicates = true;
+                            break;
+                        }
+                    } else if (predicate instanceof NumericPredicate) {
+                        NumericPredicate<? extends Number> numPredicate = (NumericPredicate<?>) predicate;
+                        double testValue = numPredicate.getValue().doubleValue();
+                        ColumnMetadata metadata = reader.metadata();
+                        if (predicate.getOperator() == Operator.EQUALS) {
+                            if (ColumnMetadataPredicateUtils.columnMayContain(testValue, metadata.getMinValue(), metadata.getMaxValue())) {
+                                allPredicates = true;
+                                break;
+                            }    
+                        } else if (predicate.getOperator() == Operator.NOT_EQUALS) {
+                            if (!ColumnMetadataPredicateUtils.columnMayContain(testValue, metadata.getMinValue(), metadata.getMaxValue())) {
+                                allPredicates = true;
+                                break;
+                            }    
+                        } else if (predicate.getOperator() == Operator.GREATER_THAN || predicate.getOperator() == Operator.GREATER_THAN_EQUAL) {
+                            if (ColumnMetadataPredicateUtils.columnMayHaveValueGreaterThan(testValue, metadata.getMaxValue())) {
+                                allPredicates = true;
+                                break;
+                            }    
+                        } else if (predicate.getOperator() == Operator.LESS_THAN || predicate.getOperator() == Operator.LESS_THAN_EQUAL) {
+                            if (ColumnMetadataPredicateUtils.columnMayHaveValueLessThan(testValue, metadata.getMaxValue())) {
+                                allPredicates = true;
+                                break;
+                            }
+                        } else if (predicate.getOperator() == Operator.IN) {
+                            for (Number num : numPredicate.getValues()) {
+                               if (ColumnMetadataPredicateUtils.columnMayContain(num.doubleValue(), metadata.getMinValue(), metadata.getMaxValue())) {
+                                   allPredicates = true;
+                                   break;
+                               }
+                            }
+                        } else if (predicate.getOperator() == Operator.BETWEEN) {
+                           double testMin = numPredicate.getValues().get(0).doubleValue();
+                           double testMax = numPredicate.getValues().get(1).doubleValue();
+                           if (ColumnMetadataPredicateUtils.columnMayHaveValueLessThan(testMin, metadata.getMaxValue()) ||
+                               ColumnMetadataPredicateUtils.columnMayHaveValueGreaterThan(testMax, metadata.getMinValue())) {
+                               allPredicates = true;
+                               break;
+                           }
+                        }
+                    }
+                }
+                if (!allPredicates)
+                    return emptyConnectorPageSource();
+            }
+            return new ArmorPageSource(new ArmorBlockReader(readers), session, columns);
         } catch (Exception e) {
-        	throw new RuntimeException(e);
+            throw new RuntimeException(e);
         }
+    }
+
+    private Map<String, Predicate<?>> buildPushDownPredicates(ArmorTableLayoutHandle tableHandle) {
+        Optional<List<ColumnDomain<ColumnHandle>>> option = tableHandle.getTupleDomain().getColumnDomains();
+        if (!option.isPresent())
+            return null;
+        Map<Object, Object> predicates = new HashMap<>();
+        for (TupleDomain.ColumnDomain<ColumnHandle> columnDomain : option.get()) {
+            ArmorColumnHandle columnHandle = (ArmorColumnHandle) columnDomain.getColumn();
+            String name = columnHandle.getName();
+            // Skip these special columns, they should have been pushed down earlier.
+            if (name.equals(ArmorConstants.INTERVAL) || name.equals(ArmorConstants.INTERVAL_START))
+                continue;
+
+            Type type = columnHandle.getType();
+            if (type instanceof VarcharType) {
+                StringPredicate stringPred = ArmorDomainUtil.columnStringPredicate(columnDomain.getDomain());
+                predicates.put(name, stringPred);
+            } else if (type instanceof BigintType || type instanceof IntegerType) {
+
+            }
+
+            System.out.print(type);
+            // String types, we will provide predicates on all using the value dictionary.
+            // =, !=, IN, NOT IN, EXISTS, CONTAINS
+
+            // Numeric types will provide predicate support all using the metadata, for now we can only use the column metadata
+            // for high value and low value.
+            // = (within range), >, >=, <, <=, 
+        }
+        return null;
+    }
+
+    private ConnectorPageSource emptyConnectorPageSource()
+    {
+        return new ConnectorPageSource() {
+            @Override
+            public long getCompletedBytes()
+            {
+                return 0;
+            }
+            @Override
+            public long getCompletedPositions()
+            {
+                return 0;
+            }
+            @Override
+            public long getReadTimeNanos()
+            {
+                return 0;
+            }
+            @Override
+            public boolean isFinished()
+            {
+                return true;
+            }
+            @Override
+            public Page getNextPage()
+            {
+                return null;
+            }
+            @Override
+            public long getSystemMemoryUsage()
+            {
+                return 0;
+            }
+            @Override
+            public void close() {}
+        };
     }
 }

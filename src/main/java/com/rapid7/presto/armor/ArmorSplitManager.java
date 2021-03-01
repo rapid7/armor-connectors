@@ -60,6 +60,7 @@ public class ArmorSplitManager
         String table = tableHandle.getTableName();
         AtomicReference<StringPredicate> intervalAtomic = new AtomicReference<>();
         AtomicReference<InstantPredicate> intervalStartAtomic = new AtomicReference<>();
+        // NOTE: Pushdowns are only provided if its AND or single predicate conditions. ORs returns ALL
         layoutHandle.getTupleDomain().getColumnDomains().ifPresent(
             columnDomains -> {
               for (TupleDomain.ColumnDomain<ColumnHandle> columnDomain : columnDomains) {
@@ -74,8 +75,8 @@ public class ArmorSplitManager
                   InstantPredicate instantPredicate = ArmorDomainUtil.startIntervalPredicate(domain);
                   intervalStartAtomic.set(instantPredicate);;
                 }
+              }
             }
-          }
         );
 
         StringPredicate interval = intervalAtomic.get();
