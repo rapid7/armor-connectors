@@ -12,7 +12,7 @@
 
     <groupId>com.rapid7.presto</groupId>
     <artifactId>presto-armor-connector</artifactId>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.0.5-SNAPSHOT</version>
     <packaging>presto-plugin</packaging>
 
     <name>presto-armor-connector</name>
