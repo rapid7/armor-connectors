@@ -50,12 +50,12 @@ public class ArmorConnectorFactory
         requireNonNull(config, "config is null");
 
         try {
-        	// Entry point for creating bindings, bootstrap is used to help manage the Guice stuff.
-        	// Main initialization of instances will come from the custom module {@link ArmorConnectorModule}
+        	   // Entry point for creating bindings, bootstrap is used to help manage the Guice stuff.
+        	   // Main initialization of instances will come from the custom module {@link ArmorConnectorModule}
             Bootstrap app = new Bootstrap(
                     new JsonModule(), // standard module copied from other connectors.
                     new ArmorConnectorModule(), // Armor module
-                	// Add more bindings if you want access to more Presto specific classes.
+                	   // Add more bindings if you want access to more Presto specific classes.
                     binder -> {
                         binder.bind(TypeManager.class).toInstance(context.getTypeManager());  // access to the presto datatypes if we need it.
                     });

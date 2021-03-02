@@ -16,6 +16,7 @@ import javax.inject.Inject;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.spi.ColumnHandle;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -34,6 +35,7 @@ import static com.facebook.presto.common.type.DateTimeEncoding.packDateTimeWithZ
 
 public class ArmorClient {
   private ReadStore readStore;
+  private static final Logger LOG = Logger.get(ArmorClient.class);
   private Cache<String, List<ColumnId>> columnIdCache = CacheBuilder.newBuilder()
      .maximumSize(2000)
      .expireAfterWrite(10, TimeUnit.MINUTES).build();
@@ -42,6 +44,7 @@ public class ArmorClient {
   public ArmorClient(ArmorConfig config) {
     if (config.getStoreType().equals("file")) {
       readStore = new FileReadStore(Paths.get(config.getStoreLocation()));
+      LOG.info("Setup armor {} read store at {}", config.getStoreType(), config.getStoreLocation());
     } else if (config.getStoreType().equals("s3")) {
       ClientConfiguration cc = new ClientConfiguration();
       cc.setMaxConnections(config.getStoreConnections());
@@ -55,6 +58,7 @@ public class ArmorClient {
       } else
         builder.setRegion(Regions.US_EAST_1.getName());
       readStore = new S3ReadStore(builder.build(), config.getStoreLocation());
+      LOG.info("Setup armor {} read store at {} with {} connections", config.getStoreType(), config.getStoreLocation(), config.getStoreConnections());
     } else
       throw new RuntimeException("The store type " + config.getStoreType() + " is not supported yet");
   }
