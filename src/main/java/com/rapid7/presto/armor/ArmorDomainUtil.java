@@ -20,7 +20,9 @@ import static com.facebook.presto.common.type.DateTimeEncoding.unpackMillisUtc;
 
 import io.airlift.slice.Slice;
 
-public class ArmorDomainUtil {
+public final class ArmorDomainUtil {
+    private ArmorDomainUtil() {}
+
     private static String valueToString(Object value) {
         if (value != null) {
             if (value instanceof Slice)
