@@ -98,21 +98,19 @@ public class ArmorMetadata
     	   // Grab convert the table and build 
         ArmorTableHandle handle = (ArmorTableHandle) table;
         try {
-        	String org = handle.getSchema();
-        	List<ColumnId> columnIds = armorClient.getColumnIds(org, handle.getTableName());
+        	   String org = handle.getSchema();
+        	   List<ColumnId> columnIds = armorClient.getColumnIds(org, handle.getTableName());
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL, DataType.STRING.getCode()));
             columnIds.add(new ColumnId(ArmorConstants.INTERVAL_START, DataType.DATETIME.getCode()));
-	        List<ColumnMetadata> columns = columnIds.stream().map(this::toColumnMetaData).collect(toImmutableList());
-
-	        return new ConnectorTableMetadata(handle.toSchemaTableName(), columns);
+	           List<ColumnMetadata> columns = columnIds.stream().map(this::toColumnMetaData).collect(toImmutableList());
+	           return new ConnectorTableMetadata(handle.toSchemaTableName(), columns);
         } catch (Exception ioe) {
-        	ioe.printStackTrace();
-        	throw new RuntimeException(ioe);
+        	   throw new RuntimeException(ioe);
         }
     }
     
     private ColumnMetadata toColumnMetaData(ColumnId columnId) {
-    	return new ColumnMetadata(columnId.getName(), toColumnType(columnId));
+        return new ColumnMetadata(columnId.getName(), toColumnType(columnId));
     }
 
     private Type toColumnType(ColumnId column) {

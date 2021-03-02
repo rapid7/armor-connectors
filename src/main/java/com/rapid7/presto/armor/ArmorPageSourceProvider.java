@@ -108,6 +108,10 @@ implements ConnectorPageSourceProvider
                         NumericPredicate<? extends Number> numPredicate = (NumericPredicate<?>) predicate;
                         double testValue = numPredicate.getValue().doubleValue();
                         ColumnMetadata metadata = reader.metadata();
+//                        if (metadata.getMaxValue() == null || metadata.getMinValue() == null) {
+//                            allPredicates = true;
+//                            break;
+//                        }
                         if (predicate.getOperator() == Operator.EQUALS) {
                             if (ColumnMetadataPredicateUtils.columnMayContain(testValue, metadata.getMinValue(), metadata.getMaxValue())) {
                                 allPredicates = true;
@@ -159,7 +163,7 @@ implements ConnectorPageSourceProvider
         Optional<List<ColumnDomain<ColumnHandle>>> option = tableHandle.getTupleDomain().getColumnDomains();
         if (!option.isPresent())
             return null;
-        Map<Object, Object> predicates = new HashMap<>();
+        Map<String, Predicate<?>> predicates = new HashMap<>();
         for (TupleDomain.ColumnDomain<ColumnHandle> columnDomain : option.get()) {
             ArmorColumnHandle columnHandle = (ArmorColumnHandle) columnDomain.getColumn();
             String name = columnHandle.getName();
@@ -172,18 +176,11 @@ implements ConnectorPageSourceProvider
                 StringPredicate stringPred = ArmorDomainUtil.columnStringPredicate(columnDomain.getDomain());
                 predicates.put(name, stringPred);
             } else if (type instanceof BigintType || type instanceof IntegerType) {
-
+                NumericPredicate<? extends Number> numPredicate = ArmorDomainUtil.columnNumericPredicate(columnDomain.getDomain());
+                predicates.put(name, numPredicate);
             }
-
-            System.out.print(type);
-            // String types, we will provide predicates on all using the value dictionary.
-            // =, !=, IN, NOT IN, EXISTS, CONTAINS
-
-            // Numeric types will provide predicate support all using the metadata, for now we can only use the column metadata
-            // for high value and low value.
-            // = (within range), >, >=, <, <=, 
         }
-        return null;
+        return predicates;
     }
 
     private ConnectorPageSource emptyConnectorPageSource()
