@@ -13,6 +13,7 @@
  */
 package com.rapid7.presto.armor;
 
+import com.facebook.airlift.log.Logger;
 import com.facebook.presto.common.Page;
 import com.facebook.presto.common.predicate.TupleDomain;
 import com.facebook.presto.common.predicate.TupleDomain.ColumnDomain;
@@ -49,9 +50,10 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
-public class ArmorPageSourceProvider
-implements ConnectorPageSourceProvider
+public class ArmorPageSourceProvider implements ConnectorPageSourceProvider
 {
+    private static final Logger LOG = Logger.get(ArmorPageSourceProvider.class);
+
     private ArmorClient armorClient;
 
     @Inject
@@ -62,12 +64,12 @@ implements ConnectorPageSourceProvider
 
     @Override
     public ConnectorPageSource createPageSource(
-            ConnectorTransactionHandle transaction,
-            ConnectorSession session,
-            ConnectorSplit split,
-            ConnectorTableLayoutHandle layout,
-            List<ColumnHandle> columns,
-            SplitContext splitContext)
+        ConnectorTransactionHandle transaction,
+        ConnectorSession session,
+        ConnectorSplit split,
+        ConnectorTableLayoutHandle layout,
+        List<ColumnHandle> columns,
+        SplitContext splitContext)
     {
         requireNonNull(split, "split is null");
         requireNonNull(layout, "layout is null");
@@ -82,11 +84,11 @@ implements ConnectorPageSourceProvider
         String table = layoutHandle.getTable().getTableName();
         try {
             ShardId shardId = ShardId.buildShardId(
-                    tenant,
-                    table,
-                    Interval.toInterval(armorSplit.getInterval()),
-                    Instant.parse(armorSplit.getIntervalStart()),
-                    armorSplit.getShard());
+                tenant,
+                table,
+                Interval.toInterval(armorSplit.getInterval()),
+                Instant.parse(armorSplit.getIntervalStart()),
+                armorSplit.getShard());
             // Determine if there are any predicates we can use. This will allow to have the fast readers load the entity and value dictionary.
             // NOTE: Pushdowns are only provided if its AND or single predicate conditions. ORs returns ALL
             Map<String, Predicate<?>> pushDownPredicates = buildPushDownPredicates(layoutHandle);
@@ -108,10 +110,11 @@ implements ConnectorPageSourceProvider
                         NumericPredicate<? extends Number> numPredicate = (NumericPredicate<?>) predicate;
                         double testValue = numPredicate.getValue().doubleValue();
                         ColumnMetadata metadata = reader.metadata();
-//                        if (metadata.getMaxValue() == null || metadata.getMinValue() == null) {
-//                            allPredicates = true;
-//                            break;
-//                        }
+                        if (metadata.getMaxValue() == null || metadata.getMinValue() == null) {
+                            LOG.warn("Detected no metadata min/max value for numeric. This wasn't expected for column " + name);
+                            allPredicates = true;
+                            break;
+                        }
                         if (predicate.getOperator() == Operator.EQUALS) {
                             if (ColumnMetadataPredicateUtils.columnMayContain(testValue, metadata.getMinValue(), metadata.getMaxValue())) {
                                 allPredicates = true;
