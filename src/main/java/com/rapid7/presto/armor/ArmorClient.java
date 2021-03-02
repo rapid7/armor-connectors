@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -45,7 +44,7 @@ public class ArmorClient {
       readStore = new FileReadStore(Paths.get(config.getStoreLocation()));
     } else if (config.getStoreType().equals("s3")) {
       ClientConfiguration cc = new ClientConfiguration();
-      cc.setMaxConnections(50);
+      cc.setMaxConnections(config.getStoreConnections());
       cc.withMaxErrorRetry(5);
       cc.withTcpKeepAlive(true);
 
@@ -83,11 +82,11 @@ public class ArmorClient {
     return readStore.findShardIds(org, tableName, interval);
   }
 
-  public List<ShardId> getShardIds(String org, String tableName, Interval interval, InstantPredicate intervalStartPredicate) throws IOException {
+  public List<ShardId> getShardIds(String org, String tableName, Interval interval, InstantPredicate intervalStartPredicate) {
     return readStore.findShardIds(org, tableName, interval, intervalStartPredicate);
   }
 
-  public List<ShardId> getShardIds(String org, String tableName, StringPredicate interval, InstantPredicate intervalStart) throws IOException {
+  public List<ShardId> getShardIds(String org, String tableName, StringPredicate interval, InstantPredicate intervalStart) {
     return readStore.findShardIds(org, tableName, interval, intervalStart);
   }
 

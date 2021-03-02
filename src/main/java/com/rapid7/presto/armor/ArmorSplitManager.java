@@ -93,7 +93,12 @@ public class ArmorSplitManager
                  shards = armorClient.getShardIds(org, table, interval, intervalStart);
              }
          } else {
-             shards = armorClient.getShardIds(org, table, (Interval) null, intervalStart);
+             // If there is no interval set, then check to see if there is an default interval strategy.
+             String desiredInterval = ArmorSessionProperties.defaultIntervalStragety(session);
+             if (desiredInterval == null || desiredInterval.equalsIgnoreCase("none"))
+                 shards = armorClient.getShardIds(org, table, (Interval) null, intervalStart);
+             else
+                 shards = armorClient.getShardIds(org, table, Interval.toInterval(desiredInterval), intervalStart);
          }
 	        List<ArmorSplit> splits = shards.stream()
 	           .map(shard -> new ArmorSplit(shard.getShardNum(), shard.getInterval(), shard.getIntervalStart()))

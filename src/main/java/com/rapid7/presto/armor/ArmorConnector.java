@@ -22,6 +22,7 @@ import com.facebook.presto.spi.connector.ConnectorSplitManager;
 import com.facebook.presto.spi.connector.ConnectorTransactionHandle;
 import com.facebook.presto.spi.session.PropertyMetadata;
 import com.facebook.presto.spi.transaction.IsolationLevel;
+import com.google.common.collect.ImmutableList;
 
 import javax.inject.Inject;
 
@@ -29,7 +30,6 @@ import static com.facebook.presto.spi.transaction.IsolationLevel.READ_COMMITTED;
 import static com.facebook.presto.spi.transaction.IsolationLevel.checkConnectorSupports;
 import static java.util.Objects.requireNonNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ArmorConnector
@@ -41,18 +41,21 @@ public class ArmorConnector
     private final ArmorMetadata metadata;
     private final ArmorSplitManager splitManager;
     private final ArmorPageSourceProvider pageSourceProvider;
+    private final List<PropertyMetadata<?>> sessionProperties;
 
     @Inject
     public ArmorConnector(
             LifeCycleManager lifeCycleManager,
             ArmorMetadata metadata,
             ArmorSplitManager splitManager,
-            ArmorPageSourceProvider pageSourceProvider)
+            ArmorPageSourceProvider pageSourceProvider,
+            ArmorSessionProperties sessionProperties)
     {
         this.lifeCycleManager = requireNonNull(lifeCycleManager, "lifeCycleManager is null");
         this.metadata = requireNonNull(metadata, "metadata is null");
         this.splitManager = requireNonNull(splitManager, "splitManager is null");
         this.pageSourceProvider = requireNonNull(pageSourceProvider, "pageSourceProvider is null");
+        this.sessionProperties = ImmutableList.copyOf(requireNonNull(sessionProperties, "sessionProperties is null").getSessionProperties());
     }
 
     @Override
@@ -77,7 +80,7 @@ public class ArmorConnector
     @Override
     public List<PropertyMetadata<?>> getSessionProperties()
     {
-        return new ArrayList<>();
+        return sessionProperties;
     }
     
     @Override
