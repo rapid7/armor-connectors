@@ -95,15 +95,15 @@ public class ArmorPageSourceProvider implements ConnectorPageSourceProvider
 
             Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(shardId, columns);
             if (pushDownPredicates != null && !pushDownPredicates.isEmpty()) {
-                boolean allPredicates = false;
+                boolean allPredicates = true;
                 for (Map.Entry<String, Predicate<?>> entries : pushDownPredicates.entrySet()) {
                     String name = entries.getKey();
                     Predicate<?> predicate = entries.getValue();
                     FastArmorBlockReader reader = readers.get(name);
                     if (predicate instanceof StringPredicate) {
                         DictionaryReader dictionary = reader.valueDictionary();
-                        if (dictionary.evaulatePredicate((StringPredicate) predicate)) {
-                            allPredicates = true;
+                        if (!dictionary.evaulatePredicate((StringPredicate) predicate)) {
+                            allPredicates = false;
                             break;
                         }
                     } else if (predicate instanceof NumericPredicate) {
@@ -116,38 +116,43 @@ public class ArmorPageSourceProvider implements ConnectorPageSourceProvider
                             break;
                         }
                         if (predicate.getOperator() == Operator.EQUALS) {
-                            if (ColumnMetadataPredicateUtils.columnMayContain(testValue, metadata.getMinValue(), metadata.getMaxValue())) {
-                                allPredicates = true;
+                            if (!ColumnMetadataPredicateUtils.columnMayContain(testValue, metadata.getMinValue(), metadata.getMaxValue())) {
+                                allPredicates = false;
                                 break;
                             }    
                         } else if (predicate.getOperator() == Operator.NOT_EQUALS) {
-                            if (!ColumnMetadataPredicateUtils.columnMayContain(testValue, metadata.getMinValue(), metadata.getMaxValue())) {
-                                allPredicates = true;
+                            if (ColumnMetadataPredicateUtils.columnMayContain(testValue, metadata.getMinValue(), metadata.getMaxValue())) {
+                                allPredicates = false;
                                 break;
                             }    
                         } else if (predicate.getOperator() == Operator.GREATER_THAN || predicate.getOperator() == Operator.GREATER_THAN_EQUAL) {
-                            if (ColumnMetadataPredicateUtils.columnMayHaveValueGreaterThan(testValue, metadata.getMaxValue())) {
-                                allPredicates = true;
+                            if (!ColumnMetadataPredicateUtils.columnMayHaveValueGreaterThan(testValue, metadata.getMaxValue())) {
+                                allPredicates = false;
                                 break;
                             }    
                         } else if (predicate.getOperator() == Operator.LESS_THAN || predicate.getOperator() == Operator.LESS_THAN_EQUAL) {
-                            if (ColumnMetadataPredicateUtils.columnMayHaveValueLessThan(testValue, metadata.getMaxValue())) {
-                                allPredicates = true;
+                            if (!ColumnMetadataPredicateUtils.columnMayHaveValueLessThan(testValue, metadata.getMaxValue())) {
+                                allPredicates = false;
                                 break;
                             }
                         } else if (predicate.getOperator() == Operator.IN) {
+                            boolean noneMatch = true;
                             for (Number num : numPredicate.getValues()) {
                                if (ColumnMetadataPredicateUtils.columnMayContain(num.doubleValue(), metadata.getMinValue(), metadata.getMaxValue())) {
-                                   allPredicates = true;
+                                   noneMatch = false;
                                    break;
                                }
+                            }
+                            if (noneMatch) {
+                              allPredicates = false;
+                              break;
                             }
                         } else if (predicate.getOperator() == Operator.BETWEEN) {
                            double testMin = numPredicate.getValues().get(0).doubleValue();
                            double testMax = numPredicate.getValues().get(1).doubleValue();
-                           if (ColumnMetadataPredicateUtils.columnMayHaveValueLessThan(testMin, metadata.getMaxValue()) ||
-                               ColumnMetadataPredicateUtils.columnMayHaveValueGreaterThan(testMax, metadata.getMinValue())) {
-                               allPredicates = true;
+                           if (!ColumnMetadataPredicateUtils.columnMayHaveValueLessThan(testMin, metadata.getMaxValue()) &&
+                               !ColumnMetadataPredicateUtils.columnMayHaveValueGreaterThan(testMax, metadata.getMinValue())) {
+                               allPredicates = false;
                                break;
                            }
                         }
