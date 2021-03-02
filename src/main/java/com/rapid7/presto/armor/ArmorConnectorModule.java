@@ -42,6 +42,7 @@ public class ArmorConnectorModule extends AbstractConfigurationAwareModule
         binder.bind(ArmorMetadata.class).in(Scopes.SINGLETON);
         binder.bind(ArmorSplitManager.class).in(Scopes.SINGLETON);
         binder.bind(ArmorPageSourceProvider.class).in(Scopes.SINGLETON);
+        binder.bind(ArmorSessionProperties.class).in(Scopes.SINGLETON);
 
         jsonBinder(binder).addDeserializerBinding(Type.class).to(TypeDeserializer.class);
     }
