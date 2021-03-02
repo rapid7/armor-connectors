@@ -123,7 +123,7 @@
         <dependency>
             <groupId>com.rapid7</groupId>
             <artifactId>armor-read</artifactId>
-            <version>0.0.12-SNAPSHOT</version>
+            <version>0.0.12</version>
             <exclusions>
                 <exclusion>
                     <groupId>tech.tablesaw</groupId>
