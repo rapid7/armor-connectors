@@ -1,5 +1,7 @@
 package com.rapid7.presto.armor;
 
+import static com.facebook.presto.common.type.DateTimeEncoding.unpackMillisUtc;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,16 +9,15 @@ import java.util.List;
 
 import com.facebook.presto.common.predicate.Domain;
 import com.facebook.presto.common.predicate.Marker;
+import com.facebook.presto.common.predicate.Marker.Bound;
 import com.facebook.presto.common.predicate.Range;
 import com.facebook.presto.common.predicate.SortedRangeSet;
 import com.facebook.presto.common.predicate.ValueSet;
 import com.facebook.presto.common.type.TimestampWithTimeZoneType;
-import com.facebook.presto.common.predicate.Marker.Bound;
 import com.rapid7.armor.read.predicate.InstantPredicate;
 import com.rapid7.armor.read.predicate.NumericPredicate;
 import com.rapid7.armor.read.predicate.StringPredicate;
 import com.rapid7.armor.store.Operator;
-import static com.facebook.presto.common.type.DateTimeEncoding.unpackMillisUtc;
 
 import io.airlift.slice.Slice;
 
@@ -41,21 +42,54 @@ public final class ArmorDomainUtil {
         return null;
     }
     
+    private static Object getSingleValue(Range range) {
+        if (range.getLow().getValueBlock().isPresent())
+            return range.getLow().getValue();
+        else
+            return range.getHigh().getValue();
+    }
+    
+    
+    private static Operator determineOperator(List<Range> ranges, List<?> values) {
+        if (ranges.size() < 2)
+            throw new IllegalArgumentException("This should only be called if there is more than 1 range");
+        // Not equals or Not in should have some form of unset/unbounded min max.
+        boolean minUnbounded = false;
+        boolean maxUnbounded = false;
+        
+        for (Range range : ranges) {
+            if (range.getHigh().isLowerUnbounded())
+                minUnbounded = true;
+            if (range.getHigh().isUpperUnbounded())
+                maxUnbounded = true;
+            if (range.getLow().isLowerUnbounded())
+                minUnbounded = true;
+            if (range.getLow().isUpperUnbounded())
+                maxUnbounded = true;
+        }
+        // NOTE: If we need to differentiate between != and NOT_IN then use values to find out.
+        if (minUnbounded && maxUnbounded)
+            return Operator.NOT_EQUALS;
+        else
+            return Operator.IN;
+    }
+    
     public static NumericPredicate<?> columnNumericPredicate(Domain predicate) {
         ValueSet values = predicate.getValues();
         if (values instanceof SortedRangeSet) {
             SortedRangeSet srs = (SortedRangeSet) values;
             List<Range> ranges = srs.getOrderedRanges();
             if (ranges.size() > 1) {
-                // In clause style predicate
-                List<Number> filters = new ArrayList<>();
+                // In (2 values or more), NOT IN or != clause style predicate
+                List<Number> numberValues = new ArrayList<>();
                 for (Range range : ranges) {
-                   Number interval = valueToNumber(range.getSingleValue());
-                   filters.add(interval);
+                   Number value = valueToNumber(getSingleValue(range));
+                   numberValues.add(value);
                 }
-                return new NumericPredicate<Number>(ArmorConstants.INTERVAL, Operator.IN, filters);
+                Operator operator = determineOperator(ranges, numberValues);
+                return new NumericPredicate<Number>(ArmorConstants.INTERVAL, operator, numberValues);
             } else {
-                // Greater, less, between etc. NOTE: Equals not supported in presto on timestmp.
+                // Greater, less, between, IN (1 value) etc. NOTE: Equals not supported in presto on timestmp.
                 Range range = ranges.iterator().next();                
                 Operator operator = null;
                 Marker highMarker = range.getHigh();
@@ -106,12 +140,13 @@ public final class ArmorDomainUtil {
             List<Range> ranges = srs.getOrderedRanges();
             if (ranges.size() > 1) {
                 // In clause style predicate
-                List<String> filters = new ArrayList<>();
+                List<String> stringValues = new ArrayList<>();
                 for (Range range : ranges) {
-                   String interval = valueToString(range.getSingleValue());
-                   filters.add(interval);
+                   String interval = valueToString(getSingleValue(range));
+                   stringValues.add(interval);
                 }
-                return new StringPredicate(ArmorConstants.INTERVAL, Operator.IN, filters);
+                Operator operator = determineOperator(ranges, stringValues);
+                return new StringPredicate(ArmorConstants.INTERVAL, operator, stringValues);
             } else {
                 // Greater, less, between etc. NOTE: Equals not supported in presto on timestmp.
                 Range range = ranges.iterator().next();                
@@ -164,12 +199,13 @@ public final class ArmorDomainUtil {
             List<Range> ranges = srs.getOrderedRanges();
             if (ranges.size() > 1) {
                 // In clause style predicate
-                List<String> filters = new ArrayList<>();
+                List<String> stringValues = new ArrayList<>();
                 for (Range range : ranges) {
-                   String interval = valueToString(range.getSingleValue());
-                   filters.add(interval);
+                   String interval = valueToString(getSingleValue(range));
+                   stringValues.add(interval);
                 }
-                return new StringPredicate(ArmorConstants.INTERVAL, Operator.IN, filters);
+                Operator operator = determineOperator(ranges, stringValues);
+                return new StringPredicate(ArmorConstants.INTERVAL, operator, stringValues);
             } else {
                 // Greater, less, between etc. NOTE: Equals not supported in presto on timestmp.
                 Range range = ranges.iterator().next();                
@@ -222,12 +258,13 @@ public final class ArmorDomainUtil {
             List<Range> ranges = srs.getOrderedRanges();
             if (ranges.size() > 1) {
                 // In clause style predicate
-                List<Instant> filters = new ArrayList<>();
+                List<Instant> instantValues = new ArrayList<>();
                 for (Range range : ranges) {
                    Long time = extractTimeValue(range.getLow()); // Range values are single set for low.
-                   filters.add(Instant.ofEpochMilli(time));
+                   instantValues.add(Instant.ofEpochMilli(time));
                 }
-                return new InstantPredicate(ArmorConstants.INTERVAL_START, Operator.IN, filters);
+                Operator operator = determineOperator(ranges, instantValues);
+                return new InstantPredicate(ArmorConstants.INTERVAL_START, operator, instantValues);
             } else {
                 // Greater, less, between etc. NOTE: Equals not supported in presto on timestmp.
                 Range range = ranges.iterator().next();                
