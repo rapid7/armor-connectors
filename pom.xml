@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.rapid7.presto</groupId>
     <artifactId>presto-armor-connector</artifactId>
-    <version>0.0.7-SNAPSHOT</version>
+    <version>0.0.7</version>
     <packaging>presto-plugin</packaging>
 
     <name>presto-armor-connector</name>
@@ -17,7 +15,7 @@
         <connection>scm:git:git@github.com:rapid7/presto-armor-connector.git</connection>
         <developerConnection>scm:git:git@github.com:rapid7/presto-armor-connector.git</developerConnection>
         <url>https://github.com/rapid7/presto-armor-connector</url>
-        <tag>HEAD</tag>
+        <tag>0.0.7</tag>
     </scm>
 
     <licenses>
@@ -350,8 +348,7 @@
                             </bannedDependencies>
                             <banDuplicatePomDependencyVersions />
                             <requireUpperBoundDeps>
-                                <excludes
-                                    combine.children="append">
+                                <excludes combine.children="append">
                                     <!-- TODO: fix this in Airlift resolver -->
                                     <exclude>org.alluxio:alluxio-shaded-client</exclude>
                                     <exclude>org.codehaus.plexus:plexus-utils</exclude>
