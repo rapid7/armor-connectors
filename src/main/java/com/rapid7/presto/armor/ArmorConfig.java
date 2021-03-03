@@ -10,7 +10,7 @@ public class ArmorConfig {
     private String storeLocation;
     private int storeConnections = 50;
     private String defaultIntervalStragety = "none";
-    private boolean pushdown = false;
+    private boolean pushdown = true;
     
     public int getStoreConnections() {
         return storeConnections;
