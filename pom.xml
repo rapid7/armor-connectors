@@ -4,12 +4,6 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>com.facebook.airlift</groupId>
-        <artifactId>airbase</artifactId>
-        <version>99</version>
-    </parent>
-
     <groupId>com.rapid7.presto</groupId>
     <artifactId>presto-armor-connector</artifactId>
     <version>0.0.6-SNAPSHOT</version>
@@ -60,8 +54,6 @@
 
 
     <properties>
-        <air.main.basedir>${project.basedir}</air.main.basedir>
-
         <air.check.skip-spotbugs>true</air.check.skip-spotbugs>
         <air.check.skip-pmd>true</air.check.skip-pmd>
         <air.check.skip-jacoco>true</air.check.skip-jacoco>
@@ -71,9 +63,7 @@
         <air.java.version>1.8.0-45</air.java.version>
         <air.maven.version>3.3.9</air.maven.version>
 
-        <dep.antlr.version>4.7.1</dep.antlr.version>
         <dep.airlift.version>0.194</dep.airlift.version>
-        <dep.packaging.version>${dep.airlift.version}</dep.packaging.version>
         <dep.slice.version>0.38</dep.slice.version>
         <dep.aws-sdk.version>1.11.445</dep.aws-sdk.version>
         <dep.okhttp.version>3.9.0</dep.okhttp.version>
@@ -91,13 +81,6 @@
         <dep.alluxio.version>2.2.2</dep.alluxio.version>
         <dep.jaxb.version>2.3.1</dep.jaxb.version>
 
-        <!-- America/Bahia_Banderas has: - offset change since 1970 (offset 
-            Jan 1970: -08:00, offset Jan 2018: -06:00) - DST (e.g. at 2017-04-02 02:00:00 
-            clocks turned forward 1 hour; 2017-10-29 02:00:00 clocks turned backward 
-            1 hour) - has forward offset change on first day of epoch (1970-01-01 00:00:00 
-            clocks turned forward 1 hour) - had forward change at midnight (1970-01-01 
-            00:00:00 clocks turned forward 1 hour) -->
-        <air.test.timezone>America/Bahia_Banderas</air.test.timezone>
         <air.test.parallel>methods</air.test.parallel>
         <air.test.thread-count>2</air.test.thread-count>
         <air.test.jvmsize>4g</air.test.jvmsize>
@@ -391,98 +374,6 @@
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>com.mycila</groupId>
-                    <artifactId>license-maven-plugin</artifactId>
-                    <version>2.3</version>
-                    <dependencies>
-                        <!-- This version must match the Airbase version. 
-                            It will be updated by -->
-                        <!-- the Maven Release plugin. The "project.version" 
-                            property cannot be -->
-                        <!-- used here as it will resolve to the version 
-                            of the child project. -->
-                        <dependency>
-                            <groupId>com.facebook.airlift</groupId>
-                            <artifactId>airbase-policy</artifactId>
-                            <version>98</version>
-                        </dependency>
-                    </dependencies>
-                    <configuration>
-                        <skip>true</skip>
-                        <skipExistingHeaders>true</skipExistingHeaders>
-                        <failIfMissing>${air.check.fail-license}</failIfMissing>
-                        <header>${air.license.header-file}</header>
-                        <mapping>
-                            <java>SLASHSTAR_STYLE</java>
-                            <g>SLASHSTAR_STYLE</g>
-                            <g4>SLASHSTAR_STYLE</g4>
-                        </mapping>
-                        <properties>
-                            <inceptionYear>${project.inceptionYear}</inceptionYear>
-                        </properties>
-                        <headerSections>
-                            <headerSection>
-                                <key>COPYRIGHT_SECTION</key>
-                                <defaultValue>${air.license.default-value}</defaultValue>
-                                <ensureMatch>${air.license.ensure-match}</ensureMatch>
-                                <multiLineMatch>false</multiLineMatch>
-                            </headerSection>
-                        </headerSections>
-                        <strictCheck>true</strictCheck>
-                        <aggregate>true</aggregate>
-                        <useDefaultExcludes>true</useDefaultExcludes>
-                        <encoding>${project.build.sourceEncoding}</encoding>
-                        <excludes>
-                            <exclude>.*/**</exclude>
-                            <exclude>**/*.md</exclude>
-                            <exclude>**/*.sh</exclude>
-                            <exclude>**/*.txt</exclude>
-                            <exclude>**/*.thrift</exclude>
-                            <exclude>**/*.sql</exclude>
-                            <exclude>**/*.releaseBackup</exclude>
-                            <exclude>**/*.st</exclude>
-                            <exclude>**/*.raw</exclude>
-                            <exclude>**/*.ser</exclude>
-                            <exclude>**/*.html</exclude>
-                            <exclude>**/*.rst</exclude>
-                            <exclude>**/*.xml</exclude>
-                            <exclude>**/*.csv</exclude>
-                            <exclude>**/*.tsv</exclude>
-                            <exclude>**/*.properties</exclude>
-                            <exclude>**/src/license/**</exclude>
-                            <exclude>**/src/*/resources/**</exclude>
-                        </excludes>
-                        <includes>
-                            <include>src/**</include>
-                        </includes>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>default</id>
-                            <phase>validate</phase>
-                            <goals>
-                                <goal>check</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.antlr</groupId>
-                    <artifactId>antlr4-maven-plugin</artifactId>
-                    <version>${dep.antlr.version}</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>antlr4</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <visitor>true</visitor>
-                    </configuration>
-                </plugin>
-
-                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-shade-plugin</artifactId>
                     <version>3.1.1</version>
@@ -553,15 +444,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <configuration combine.children="append">
-                    <fork>false</fork>
+                <version>3.8.0</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration combine.children="append">
+                <configuration>
                     <includes>
                         <include>**/Test*.java</include>
                         <include>**/Benchmark*.java</include>
