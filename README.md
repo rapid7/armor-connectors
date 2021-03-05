@@ -117,5 +117,23 @@ Note: If you are testing against a S3 store, then ensure your IDE's session has 
 a) cd to presto/presto-cli/target
 b) ./presto-cli-$VERSION-SNAPSHOT-executable.jar
 
-You should see the armor catalog setup. Have fun!
+You should see the armor catalog setup.
+
+## Armor properties
+
+
+## Armor Session properties
+
+
+## Deploying the connector to prestodb
+
+NOTE: These instructions are based on deploying into prestodb using AWS EMR clusters. For the most part it should work in the same manner but there may be slight differences.
+
+1. Compile and build the plugin. Ensure the version of Java is compatible with the version of Java that presto will be running.
+2. Collect not only the jar but also all the libraries the connector has a dependency on. Most important to notice is to make sure the zstd library version matches the version of zstd that the presto cluster is using. This library (if it does have it) would have an api comptablity if different versions of zstd were introduced.
+3. Build an armor properties file. The properties file should 
+4. Deploy the properties file into /etc folder
+5. All the jars including the presto connector put into the plugin directory.
+
+
 
