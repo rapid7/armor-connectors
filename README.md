@@ -123,12 +123,12 @@ You should see the armor catalog setup.
 
 In order to use the presto connector you'll need to define your armor settings. The armor settings you can need to set are
 
-a) connector.name: The name of the connector. It can be any value like "armor".
-b) armor.store.type: The type of store, current options are "file" and "s3"
-c) armor.store.location: The root directory of the store. For s3 this would be the bucket.
-d) armor.store.connections (optional): This only applies to s3 types, but this will define how many underlying s3 connections to use. Default is 50
-e) armor.default-interval-stragety (optional): Setup a default interval stragety. Defaults to "none", in which case there is no hidden filtering by interval. If you wish have all queries filter by an interval like "single" then set this otherwise all queries' where clause would need to pass an interval where predicate.
-f) armor.attempt-predicate-pushdown (optional): Attempt to execute predicate pushdowns, default is set to "true".
+* connector.name: The name of the connector. It can be any value like "armor".
+* armor.store.type: The type of store, current options are "file" and "s3"
+* armor.store.location: The root directory of the store. For s3 this would be the bucket.
+* armor.store.connections (optional): This only applies to s3 types, but this will define how many underlying s3 connections to use. Default is 50
+* armor.default-interval-stragety (optional): Setup a default interval stragety. Defaults to "none", in which case there is no hidden filtering by interval. If you wish have all queries filter by an interval like "single" then set this otherwise all queries' where clause would need to pass an interval where predicate.
+* armor.attempt-predicate-pushdown (optional): Attempt to execute predicate pushdowns, default is set to "true".
 
 ```
 connector.name=armor
