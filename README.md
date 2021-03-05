@@ -133,7 +133,7 @@ f) armor.attempt-predicate-pushdown (optional): Attempt to execute predicate pus
 ```
 connector.name=armor
 armor.store.type=s3
-armor.store.location=armor-bucket.%%CLOUD%%.%%REGION%%.insight.rapid7.com
+armor.store.location=armor-bucket
 ```
 
 ## Armor Session properties
