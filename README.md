@@ -117,5 +117,42 @@ Note: If you are testing against a S3 store, then ensure your IDE's session has 
 a) cd to presto/presto-cli/target
 b) ./presto-cli-$VERSION-SNAPSHOT-executable.jar
 
-You should see the armor catalog setup. Have fun!
+You should see the armor catalog setup.
+
+## Armor properties
+
+In order to use the presto connector you'll need to define your armor settings. The armor settings you can need to set are
+
+* connector.name: The name of the connector. It can be any value like "armor".
+* armor.store.type: The type of store, current options are "file" and "s3"
+* armor.store.location: The root directory of the store. For s3 this would be the bucket.
+* armor.store.connections (optional): This only applies to s3 types, but this will define how many underlying s3 connections to use. Default is 50
+* armor.default-interval-stragety (optional): Setup a default interval stragety. Defaults to "none", in which case there is no hidden filtering by interval. If you wish have all queries filter by an interval like "single" then set this otherwise all queries' where clause would need to pass an interval where predicate.
+* armor.attempt-predicate-pushdown (optional): Attempt to execute predicate pushdowns, default is set to "true".
+
+```
+connector.name=armor
+armor.store.type=s3
+armor.store.location=armor-bucket
+```
+
+## Armor Session properties
+
+You can set certain properties at runtime to change the behaivor of the armor queries. The two session properties you can set are.
+
+1) attempt_predicate_pushdown: Enable/Disable predicate pushdown. Default is true.
+2) default_interval_stragety: Set the interval stragety. Default is none.
+
+## Deploying the connector to prestodb
+
+NOTE: These instructions are based on deploying into prestodb using AWS EMR clusters. For the most part it should work in the same manner but there may be slight differences.
+
+1. Compile and build the plugin. Ensure the version of Java is compatible with the version of Java that presto will be running.
+2. Collect not only the jar but also all the libraries the connector has a dependency on. Most important to notice is to make sure the zstd library version matches the version of zstd that the presto cluster is using. This library (if it does have it) would have an api comptablity if different versions of zstd were introduced.
+3. Build an armor properties file. See armor properties file section above for more details.
+4. Deploy the property file to /etc/presto/conf.dist/catalog/ on the master presto node.
+5. All the jars from step to deploy and place them in the /usr/lib/presto/plugin/armor/
+6. Start the cluster.
+
+
 
