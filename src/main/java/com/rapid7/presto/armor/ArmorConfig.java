@@ -8,7 +8,7 @@ import com.facebook.airlift.configuration.ConfigDescription;
 public class ArmorConfig {
     private String storeType;
     private String storeLocation;
-    private int storeConnections = 50;
+    private int storeConnections = 500;
     private String defaultIntervalStragety = "none";
     private boolean pushdown = true;
     
@@ -17,7 +17,7 @@ public class ArmorConfig {
     }
     
     @Config("armor.store.connections")
-    @ConfigDescription("The number of connections to the store (if possible)")
+    @ConfigDescription("The number of connections for the store (if possible)")
     public ArmorConfig setStoreConnections(int storeConnections)
     {
         this.storeConnections = storeConnections;
