@@ -29,7 +29,8 @@ public class ArmorSessionProperties
 {
     private static final String ATTEMPT_PUSHDOWN = "attempt_predicate_pushdown";
     private static final String DEFAULT_INTERVAL_STRAGETY = "default_interval_stragety";
-
+    private static final String LIST_TENANT_CACHED = "list_tenant_cached";
+    
     private final List<PropertyMetadata<?>> sessionProperties;
 
     public static boolean isAttemptPushdownEnabled(ConnectorSession session)
@@ -40,6 +41,11 @@ public class ArmorSessionProperties
     public static String defaultIntervalStragety(ConnectorSession session)
     {
         return session.getProperty(DEFAULT_INTERVAL_STRAGETY, String.class);
+    }
+    
+    public static boolean isListTenantsCachedEnabled(ConnectorSession session)
+    {
+        return session.getProperty(LIST_TENANT_CACHED, Boolean.class);
     }
 
     @Inject
@@ -55,6 +61,11 @@ public class ArmorSessionProperties
                  DEFAULT_INTERVAL_STRAGETY,
                  "Set the default interval stragety",
                  armorConfig.getDefaultIntervalStragety(),
+                 false),
+            booleanProperty(
+                 LIST_TENANT_CACHED,
+                 "Use cache to list all tenants",
+                 true,
                  false)
             );
     }

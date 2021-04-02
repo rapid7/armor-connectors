@@ -78,8 +78,8 @@ public class ArmorClient {
     return readStore.getTables(org);
   }
 
-  public List<String> getSchemas() {
-    return readStore.getTenants();
+  public List<String> getSchemas(boolean useCache) {
+    return readStore.getTenants(useCache);
   }
 
   public List<ShardId> getShardIds(String org, String tableName, Interval interval) throws IOException {

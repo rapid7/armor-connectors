@@ -67,7 +67,7 @@ public class ArmorMetadata
     @Override
     public List<String> listSchemaNames(ConnectorSession session)
     {
-        return armorClient.getSchemas();
+        return armorClient.getSchemas(ArmorSessionProperties.isListTenantsCachedEnabled(session));
     }
 
     @Override
