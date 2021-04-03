@@ -154,5 +154,14 @@ NOTE: These instructions are based on deploying into prestodb using AWS EMR clus
 5. All the jars from step to deploy and place them in the /usr/lib/presto/plugin/armor/
 6. Start the cluster.
 
+## Timeseries Interval filtering
+
+In armor timeseries intervals are always normalized to the grain of the interval in UTC timezone. This may be an issue if your presto server is not set in UTC. By default presto's timezone is set to the JVM's timezone, which is configurable on startup. Thus if your presto server is set to California's timezone and you choose to filter the interval start by only giving the date, then most likely it will over filter. This is due to the fact that presto will send the adjusted UTC time value for California. To avoid this issue irregardless of the Presto server timezone configuration, simply explicitly pass the timestamp with timezone parameter. 
+
+```
+where __intervalStart = timestamp '2021-03-22 00:00:00.000 UTC'
+where __intervalStart = timestamp '2021-03-22 UTC'
+
+```
 
 
