@@ -5,6 +5,7 @@ import static com.facebook.presto.common.type.DateTimeEncoding.unpackMillisUtc;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.facebook.presto.common.predicate.Domain;
@@ -74,12 +75,14 @@ public final class ArmorDomainUtil {
             return Operator.IN;
     }
     
-    public static NumericPredicate<?> columnNumericPredicate(Domain predicate) {
+    public static NumericPredicate<?> columnNumericPredicate(String field, Domain predicate) {
         ValueSet values = predicate.getValues();
         if (values instanceof SortedRangeSet) {
             SortedRangeSet srs = (SortedRangeSet) values;
             List<Range> ranges = srs.getOrderedRanges();
-            if (ranges.size() > 1) {
+            if (ranges.isEmpty()) {
+                return new NumericPredicate<Number>(field, predicate.isNullAllowed() ? Operator.IS_NULL : Operator.NOT_NULL, Collections.emptyList());
+            } else if (ranges.size() > 1) {
                 // In (2 values or more), NOT IN or != clause style predicate
                 List<Number> numberValues = new ArrayList<>();
                 for (Range range : ranges) {
@@ -87,7 +90,7 @@ public final class ArmorDomainUtil {
                    numberValues.add(value);
                 }
                 Operator operator = determineOperator(ranges, numberValues);
-                return new NumericPredicate<Number>(ArmorConstants.INTERVAL, operator, numberValues);
+                return new NumericPredicate<Number>(field, operator, numberValues);
             } else {
                 // Greater, less, between, IN (1 value) etc. NOTE: Equals not supported in presto on timestmp.
                 Range range = ranges.iterator().next();                
@@ -101,7 +104,7 @@ public final class ArmorDomainUtil {
                     else if (highMarker.getBound() == Bound.EXACTLY && lowMarker.getBound() == Bound.ABOVE)
                         operator = Operator.LESS_THAN_EQUAL;
                     Number interval = valueToNumber(highMarker.getValue());
-                    return new NumericPredicate<Number>(ArmorConstants.INTERVAL, Operator.IN, interval);
+                    return new NumericPredicate<Number>(field, Operator.IN, interval);
                 }
                 // For > and >=
                 if (lowMarker.getValueBlock().isPresent() && !highMarker.getValueBlock().isPresent()) {
@@ -110,35 +113,39 @@ public final class ArmorDomainUtil {
                     else if (highMarker.getBound() == Bound.BELOW && lowMarker.getBound() == Bound.ABOVE)
                         operator = Operator.GREATER_THAN;
                     Number interval = valueToNumber(lowMarker.getValue());
-                    return new NumericPredicate<Number>(ArmorConstants.INTERVAL, operator, interval);
+                    return new NumericPredicate<Number>(field, operator, interval);
                 }
                 // For = or between
-                if (highMarker.getValueBlock().isPresent() && highMarker.getValueBlock().isPresent()) {
+                if (highMarker.getValueBlock().isPresent() && lowMarker.getValueBlock().isPresent()) {
                     if (highMarker.getBound() == Bound.EXACTLY && lowMarker.getBound() == Bound.EXACTLY) {
                        // Between and equal are the same only way to determine the difference is if the values are different.
                         Number highValue = valueToNumber(highMarker.getValue());
                         Number lowValue = valueToNumber(lowMarker.getValue());
                        if (highValue.equals(lowValue)) {
-                         return new NumericPredicate<Number>(ArmorConstants.INTERVAL, Operator.EQUALS, highValue);
+                         return new NumericPredicate<Number>(field, Operator.EQUALS, highValue);
                        } else {
                          return new NumericPredicate<Number>(
-                             ArmorConstants.INTERVAL,
+                             field,
                              Operator.BETWEEN,
                              Arrays.asList(highValue, lowValue));
                        }
                     }
+                } else {
+                    return new NumericPredicate<Number>(field, predicate.isNullAllowed() ? Operator.IS_NULL : Operator.NOT_NULL, Collections.emptyList());
                 }
             }
         }
         throw new RuntimeException("Unable to resolve predicate into armor predicate");
     }
     
-    public static StringPredicate columnStringPredicate(Domain predicate) {
+    public static StringPredicate columnStringPredicate(String field, Domain predicate) {
         ValueSet values = predicate.getValues();
         if (values instanceof SortedRangeSet) {
             SortedRangeSet srs = (SortedRangeSet) values;
             List<Range> ranges = srs.getOrderedRanges();
-            if (ranges.size() > 1) {
+            if (ranges.isEmpty()) {
+                return new StringPredicate(field, predicate.isNullAllowed() ? Operator.IS_NULL : Operator.NOT_NULL, "");
+            } else if (ranges.size() > 1) {
                 // In clause style predicate
                 List<String> stringValues = new ArrayList<>();
                 for (Range range : ranges) {
@@ -146,9 +153,9 @@ public final class ArmorDomainUtil {
                    stringValues.add(interval);
                 }
                 Operator operator = determineOperator(ranges, stringValues);
-                return new StringPredicate(ArmorConstants.INTERVAL, operator, stringValues);
+                return new StringPredicate(field, operator, stringValues);
             } else {
-                // Greater, less, between etc. NOTE: Equals not supported in presto on timestmp.
+                // Greater, less, between etc. NOTE: Equals not supported in presto on timestmp.q
                 Range range = ranges.iterator().next();                
                 Operator operator = null;
                 Marker highMarker = range.getHigh();
@@ -160,7 +167,7 @@ public final class ArmorDomainUtil {
                     else if (highMarker.getBound() == Bound.EXACTLY && lowMarker.getBound() == Bound.ABOVE)
                         operator = Operator.LESS_THAN_EQUAL;
                     String interval = valueToString(highMarker.getValue());
-                    return new StringPredicate(ArmorConstants.INTERVAL, operator, interval);
+                    return new StringPredicate(field, operator, interval);
                 }
                 // For > and >=
                 if (lowMarker.getValueBlock().isPresent() && !highMarker.getValueBlock().isPresent()) {
@@ -169,23 +176,25 @@ public final class ArmorDomainUtil {
                     else if (highMarker.getBound() == Bound.BELOW && lowMarker.getBound() == Bound.ABOVE)
                         operator = Operator.GREATER_THAN;
                     String interval = valueToString(lowMarker.getValue());
-                    return new StringPredicate(ArmorConstants.INTERVAL, operator, interval);
+                    return new StringPredicate(field, operator, interval);
                 }
                 // For = or between
-                if (highMarker.getValueBlock().isPresent() && highMarker.getValueBlock().isPresent()) {
+                if (highMarker.getValueBlock().isPresent() && lowMarker.getValueBlock().isPresent()) {
                     if (highMarker.getBound() == Bound.EXACTLY && lowMarker.getBound() == Bound.EXACTLY) {
-                       // Between and equal are the same only way to determine the difference is if the values are different.
+                       // Between and equal are the same only way to determine the dif qference is if the values are different.
                        String highValue = valueToString(highMarker.getValue());
                        String lowValue = valueToString(lowMarker.getValue());
                        if (highValue.equals(lowValue)) {
-                         return new StringPredicate(ArmorConstants.INTERVAL, Operator.EQUALS, highValue);
+                         return new StringPredicate(field, Operator.EQUALS, highValue);
                        } else {
                          return new StringPredicate(
-                             ArmorConstants.INTERVAL,
+                             field,
                              Operator.BETWEEN,
                              Arrays.asList(highValue, lowValue));
                        }
                     }
+                } else {
+                    return new StringPredicate(field, predicate.isNullAllowed() ? Operator.IS_NULL : Operator.NOT_NULL, "");
                 }
             }
         }
