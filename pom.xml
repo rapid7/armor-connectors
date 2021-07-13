@@ -105,7 +105,7 @@
         <dependency>
             <groupId>com.rapid7</groupId>
             <artifactId>armor-read</artifactId>
-            <version>0.0.23</version>
+            <version>0.0.32-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>tech.tablesaw</groupId>

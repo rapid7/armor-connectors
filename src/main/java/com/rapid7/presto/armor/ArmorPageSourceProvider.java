@@ -90,8 +90,8 @@ public class ArmorPageSourceProvider implements ConnectorPageSourceProvider
                 Instant.parse(armorSplit.getIntervalStart()),
                 armorSplit.getShard());
             // Determine if there are any predicates we can use. This will allow to have the fast readers load the entity and value dictionary.
-            // NOTE: Pushdowns are only provided if its AND or single predicate conditions. ORs returns ALL
-            Map<String, Predicate<?>> pushDownPredicates = buildPushDownPredicates(layoutHandle);
+            // NOTE: Pushdowns are only provided if its AND or single predicate situations. ORs returns ALL
+            Map<String, Predicate<?>> pushDownPredicates = buildPushdownPredicates(layoutHandle);
 
             Map<String, FastArmorBlockReader> readers = armorClient.getFastReaders(shardId, columns);
             if (pushDownPredicates != null && !pushDownPredicates.isEmpty()) {
@@ -102,7 +102,13 @@ public class ArmorPageSourceProvider implements ConnectorPageSourceProvider
                     FastArmorBlockReader reader = readers.get(name);
                     if (predicate instanceof StringPredicate) {
                         DictionaryReader dictionary = reader.valueDictionary();
-                        if (!dictionary.evaulatePredicate((StringPredicate) predicate)) {
+                        Boolean predicateResult = dictionary.evaulatePredicate((StringPredicate) predicate);
+                        if (predicateResult == null) {
+                            // This can't be evaluated by the string column thus invalidate pushdown predicates attempt.
+                            allPredicates = true; // If previous predicate was set to true, then simplate
+                            break;
+                        }
+                        if (!predicateResult) {
                             allPredicates = false;
                             break;
                         }
@@ -167,7 +173,7 @@ public class ArmorPageSourceProvider implements ConnectorPageSourceProvider
         }
     }
 
-    private Map<String, Predicate<?>> buildPushDownPredicates(ArmorTableLayoutHandle tableHandle) {
+    private Map<String, Predicate<?>> buildPushdownPredicates(ArmorTableLayoutHandle tableHandle) {
         Optional<List<ColumnDomain<ColumnHandle>>> option = tableHandle.getTupleDomain().getColumnDomains();
         if (!option.isPresent())
             return null;
@@ -181,10 +187,10 @@ public class ArmorPageSourceProvider implements ConnectorPageSourceProvider
 
             Type type = columnHandle.getType();
             if (type instanceof VarcharType) {
-                StringPredicate stringPred = ArmorDomainUtil.columnStringPredicate(columnDomain.getDomain());
+                StringPredicate stringPred = ArmorDomainUtil.columnStringPredicate(name, columnDomain.getDomain());
                 predicates.put(name, stringPred);
             } else if (type instanceof BigintType || type instanceof IntegerType) {
-                NumericPredicate<? extends Number> numPredicate = ArmorDomainUtil.columnNumericPredicate(columnDomain.getDomain());
+                NumericPredicate<? extends Number> numPredicate = ArmorDomainUtil.columnNumericPredicate(name, columnDomain.getDomain());
                 predicates.put(name, numPredicate);
             }
         }
