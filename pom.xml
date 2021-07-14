@@ -4,7 +4,7 @@
 
     <groupId>com.rapid7.presto</groupId>
     <artifactId>presto-armor-connector</artifactId>
-    <version>0.0.13</version>
+    <version>0.0.14-SNAPSHOT</version>
     <packaging>presto-plugin</packaging>
 
     <name>presto-armor-connector</name>
@@ -15,7 +15,7 @@
         <connection>scm:git:git@github.com:rapid7/presto-armor-connector.git</connection>
         <developerConnection>scm:git:git@github.com:rapid7/presto-armor-connector.git</developerConnection>
         <url>https://github.com/rapid7/presto-armor-connector</url>
-        <tag>0.0.13</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <licenses>
