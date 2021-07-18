@@ -102,6 +102,11 @@ public class ArmorPageSourceProvider implements ConnectorPageSourceProvider
                     FastArmorBlockReader reader = readers.get(name);
                     if (predicate instanceof StringPredicate) {
                         DictionaryReader dictionary = reader.valueDictionary();
+                        if (dictionary == null) {
+                            // This means empty table so no push down and let presto evaluate.
+                            allPredicates = true;
+                            break;
+                        }
                         Boolean predicateResult = dictionary.evaulatePredicate((StringPredicate) predicate);
                         if (predicateResult == null) {
                             // This can't be evaluated by the string column thus invalidate pushdown predicates attempt.
