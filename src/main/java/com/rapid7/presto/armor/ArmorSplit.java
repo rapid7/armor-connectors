@@ -39,8 +39,6 @@ public class ArmorSplit
         this.intervalStart = intervalStart;
     }
 
-    
-
     @JsonProperty
     public int getShard()
     {
